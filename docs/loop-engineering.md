@@ -10,6 +10,7 @@
 4. Addy Osmani 於 2026-06-07 發表的 [Loop Engineering](https://addyosmani.com/blog/loop-engineering/)是命名與六項元件的作者原文；同月的 [Agentic Code Review](https://addyosmani.com/blog/agentic-code-review/)把瓶頸定位在信任與驗證，[The New Software Lifecycle](https://addyosmani.com/blog/new-sdlc-vibe-coding/)及其共同撰寫的 [Google 白皮書](https://www.kaggle.com/whitepaper-the-new-SDLC-with-vibe-coding)則把 agent 表述為 model 加 harness。
 5. arXiv 論文 [Stop Hand-Holding Your Coding Agent](https://arxiv.org/abs/2607.00038)把 loop 定義為包含 trigger、goal、verification、stopping rule 與 memory 的有界工程 artifact，並指出四層能力是互補而非互相淘汰。
 6. 中文脈絡來自使用者提供的[文章](https://www.woshipm.com/ai/6414092.html)與摘要、2026-06-14 的[「Harness 長出的外循環」分析](https://www.woshipm.com/share/6413154.html)，以及 2026-07-11 的[實作型深讀](https://www.woshipm.com/ai/6427806.html)；另以人人都是產品經理的[工程躍遷整理](https://www.woshipm.com/ai/6414536.html)及[Agent 全流程整理](https://www.woshipm.com/ai/6415411.html)交叉檢查。
+7. 數位時代於 2026-06-15 發布的[迴圈工程介紹](https://www.bnext.com.tw/article/91246/loop-engineering-from-prompting-to-designing-ai-coding-loops)補充五階段執行模型、最小可行迴圈與營運成本觀點。該頁明示「本文初稿為 AI 編撰，整理．編輯／李先泰」，因此列為二級整理，技術與人物主張仍回查前述原始來源。
 
 因此，本 repo 不把「Prompt 已死」當成事實。Addy 把 loop 描述為 harness 上方的控制層，中文文章則稱它是 harness 長出的外循環；兩者共同指出的工程關係是「包覆與反饋」，不是淘汰。Prompt、Context、Harness、Loop 由內向外疊加，外層仍依賴內層的明確指令、乾淨脈絡與可靠工具。
 
@@ -21,6 +22,14 @@
 - Osmani 的 Google SDLC 脈絡強調 model 只是 agent 的一部分，rules、tools/MCP、sandbox、orchestration、hooks、tests 與 observability 都屬 harness。
 - 中文文章「Harness 長出的外循環」有助於避免把 Loop Engineering 誤解為全新技術層；它是二級分析，日期、人物說法與產品能力仍以上述原始來源為準。
 - 7 月的實作型文章補上 `PASS`／`FAIL`／`NEEDS_HUMAN`、最多兩次重試、先手動跑通再排程與最小 backlog 等有用做法。本 repo 採納這些控制，但不採納把 `.env` 複製進 worktree、預先給廣泛 GitHub 寫入權或驗證後自動開 PR 的示例；秘密與外部寫入的 blast radius 必須另行縮限。
+
+## 五階段與六元件不是同一件事
+
+數位時代整理的 `Discover → Plan → Execute → Verify → Iterate` 描述一次 loop 的執行狀態；六元件描述讓這個狀態機能可靠運作的基礎設施。驗證通過才可結束，失敗則帶著具體證據進入 Iterate，再回到必要的探索或規劃，不是從頭盲目重跑。
+
+它提出的最小可行迴圈是 automation、skill、state 與 gate。本 repo 已具備後三者，automation 則刻意維持停用；必須先用一次人工執行證明 maker、checker、state 與 stop path 完整，才值得排程。
+
+「每個被採納修改的成本」比總 token 數更接近實際價值，可以在未來 runner 實作後作為營運指標。但文章提到的 50% 採納率是經驗法則，不是跨專案通用的正確性門檻，本 repo 不將它寫入 fail-closed policy。
 
 ## 六項基礎設施如何落地
 
@@ -48,7 +57,7 @@
 
 ## 反饋、停止與責任
 
-最小循環是 `選擇下一步 → 在隔離區修改 → 執行最小關卡 → checker 判斷 → 更新精簡 state`。以下任一條件立即停止：
+最小循環是 `Discover → Plan → Execute → Verify → Iterate`；每個階段都更新精簡 state，Verify 必須由獨立 checker 依機械證據判斷。以下任一條件立即停止：
 
 - 驗收條件全數通過；
 - 達到 iteration、elapsed time 或 token 上限；
@@ -57,6 +66,8 @@
 - 進入需要人工核准的風險類別。
 
 Checker 的結果應限制為 `PASS`、`FAIL` 或 `NEEDS_HUMAN`，並附自己重跑的證據。啟用 scheduler 前，先人工跑通一次完整鏈路；這也是 `loop.enabled = false` 的實際含義。
+
+Maker 宣稱「完成」不具終止效力。只有 checker 的客觀 gate 能把 state 設為 `complete`，避免 Ralph Wiggum 式過早完成訊號讓半成品靜默退出。
 
 這些限制降低 context drift、token 失控、reward hacking 與 comprehension debt，但不消除責任。人仍負責需求真偽、禁止事項、風險分類、驗收 oracle 與最終發布。
 

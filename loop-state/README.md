@@ -6,6 +6,8 @@
 {
   "task": "bounded task identifier",
   "iteration": 1,
+  "phase": "verify",
+  "status": "in_progress",
   "changed_paths": [],
   "last_failure": null,
   "evidence_paths": [],
@@ -13,5 +15,7 @@
   "next_action": "run focused test"
 }
 ```
+
+`phase` 使用 `discover`、`plan`、`execute`、`verify` 或 `iterate`。執行中的 `status` 是 `in_progress`；只有獨立 checker 可根據客觀 gate 改成 policy 定義的 terminal status，maker 的完成訊息不能直接改成 `complete`。
 
 不要保存秘密、cookie、token、完整 prompt、完整工具輸出或個人資料。終止後可保留不含敏感資訊的 evidence pointer；runtime `state.json` 不提交 Git。
