@@ -13,6 +13,10 @@ quality_gate_demo.cli  --->  quality_gate_demo.pricing
 
 Gherkin acceptance ---------> externally visible behavior
 quality scripts ------------> coverage, complexity, size, JUnit evidence
+
+trigger -> isolated maker -> deterministic gates -> independent checker
+              ^                       |                    |
+              +------- compact state -+------ stop/escalate+
 ```
 
 `pricing` 是 domain policy，只依賴標準函式庫；`cli` 是輸入輸出 adapter。Import Linter 明確禁止 domain 反向依賴 adapter。
@@ -25,6 +29,9 @@ quality scripts ------------> coverage, complexity, size, JUnit evidence
 - `features/`：人可檢視的 Gherkin 驗收規格。
 - `tools/`：Windows/Linux 開發入口、QA、量測與 fail-closed checker。
 - `.github/`：跨平台 CI、安全掃描、依賴更新與協作模板。
+- `.agents/skills/quality-loop/`：可重用的有界 agent loop 操作契約。
+- `loop-policy.toml`：可機械驗證的成本、隔離、驗證與人工核准政策。
+- `loop-state/`：未追蹤的最小 runtime state；只保留 README。
 - `artifacts/`：本機產生且不提交的驗收證據。
 
 ## 擴充方式

@@ -2,7 +2,7 @@
 
 [English](README.en.md)
 
-以可執行規格、自動化測試與工程量化指標約束 AI 輔助開發的 Python 參考專案。它不是「測試綠燈就可免責」的宣言，而是一套把需求、邊界、架構與品質門檻做成可重現證據的最小實作。
+以可執行規格、自動化測試、工程量化指標與有界迴圈約束 AI 輔助開發的 Python 參考專案。它不是「測試綠燈就可免責」的宣言，而是一套把需求、邊界、架構、成本上限與停止條件做成可重現證據的最小實作。
 
 本專案源自 Robert C. Martin 於 2026 年 7 月對 AI agent 程式碼的公開討論，以及 [INSIDE 報導](https://www.inside.com.tw/article/41914-clean-code-author-uncle-bob-says-he-no-longer-reads-ai-written-code)。原文脈絡、限制與查證層級見 [文章研究筆記](docs/article-notes.md)。
 
@@ -20,8 +20,20 @@
 | 依賴結構 | Import Linter | domain 不可反向依賴 CLI adapter |
 | 靜態品質 | Ruff + strict mypy | 0 finding |
 | 供應鏈與安全 | pip-audit + Dependabot + CodeQL | 高風險問題不得通過 |
+| Agent loop 治理 | TOML policy + fail-closed checker | 有界成本、獨立 verifier、禁止 auto-merge 與高風險自行核准 |
 
 詳細理由與盲點見 [品質關卡說明](docs/quality-gates.md)。
+
+## Loop Engineering
+
+本 repo 也把 Boris Cherny 訪談、Peter Steinberger 公開貼文、Addy Osmani／Google 論述與 Loop Engineering 討論落成機械化治理，而不只是再寫一篇摘要：
+
+- [`loop-policy.toml`](loop-policy.toml) 定義 iteration、時間、token、平行工作區與重複失敗的硬上限。
+- [`tools/check_loop_policy.py`](tools/check_loop_policy.py) 在 Quick/Full gate 驗證隔離、maker/checker 分離、state、connector 與人工核准邊界。
+- [repo-local quality-loop skill](.agents/skills/quality-loop/SKILL.md) 規範 agent 如何開始、留下證據與停止。
+- [Loop Engineering 研究與設計](docs/loop-engineering.md)區分 Boris 原始訪談、Addy Osmani 原文、論文與中文整理，並說明六項基礎設施的對應方式。
+
+安全預設是 `loop.enabled = false`。專案目前提供可驗證 contract，不提供無界限 runner，也不自動推送、合併或部署。
 
 ## 快速開始（Windows）
 
@@ -70,6 +82,7 @@ uv run quality-gate-demo quote --input examples\order.json
 - [架構](docs/architecture.md)
 - [品質關卡與責任邊界](docs/quality-gates.md)
 - [文章與 Robert C. Martin 原始脈絡](docs/article-notes.md)
+- [Loop Engineering 原始來源與有界自治](docs/loop-engineering.md)
 - [既有 repo 方法盤點](docs/repository-survey.md)
 - [設計決策](docs/decisions.md)
 - [貢獻指南](CONTRIBUTING.md)

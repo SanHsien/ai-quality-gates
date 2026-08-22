@@ -22,6 +22,7 @@
 | 文件 gate | 2/24 | 自帶相對連結檢查 |
 | Mutation gate | 0/24 | 新增 mutmut 100% gate |
 | 架構依賴 contract | 0/24 | 新增 Import Linter contract |
+| Agent loop 邊界 | 少數 repo 有 agent/harness 指引，未形成共同量化格式 | 新增有界 policy、獨立 verifier、最小 state 與硬停止條件 |
 
 ## 採納的成熟做法
 
@@ -29,6 +30,7 @@
 - Quick 與 Full 分流，昂貴驗證不阻塞每次迭代。
 - workflow 使用最小 permissions、concurrency、timeout 與可重現 lockfile。
 - 產生機械可讀 evidence，不只輸出「綠燈」。
+- 沿用既有 repo 的 Quick/Full、Windows-first 與最小 smoke 原則，把 loop 的成本與停止條件也做成 fail-closed contract。
 - CodeQL、dependency audit、Dependabot、issue/PR templates 與 release hygiene 放入 repo。
 - 測試公開入口、文件相對連結與 package build，避免只測內部 helper。
 

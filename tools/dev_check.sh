@@ -20,6 +20,7 @@ uv run ruff format --check .
 uv run ruff check .
 uv run mypy src tools
 uv run lint-imports
+uv run python -m tools.check_loop_policy
 
 if "$quick"; then
   uv run pytest -q

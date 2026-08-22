@@ -31,6 +31,7 @@ Invoke-UvStep "Ruff format" @("ruff", "format", "--check", ".")
 Invoke-UvStep "Ruff lint" @("ruff", "check", ".")
 Invoke-UvStep "Strict typing" @("mypy", "src", "tools")
 Invoke-UvStep "Architecture dependency contract" @("lint-imports")
+Invoke-UvStep "Bounded loop policy" @("python", "-m", "tools.check_loop_policy")
 
 if ($Quick) {
     Invoke-UvStep "Unit and integration tests" @("pytest", "-q")

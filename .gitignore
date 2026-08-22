@@ -11,3 +11,5 @@ dist/
 htmlcov/
 mutants/
 *.egg-info/
+loop-state/*
+!loop-state/README.md

@@ -2,9 +2,9 @@
 
 [繁體中文](README.md)
 
-An executable Python reference for constraining AI-assisted development with specifications, automated tests, and measurable engineering gates.
+An executable Python reference for constraining AI-assisted development with specifications, automated tests, measurable engineering gates, and bounded agent loops.
 
-The repository implements unit and integration tests, Gherkin acceptance tests, a command-boundary QA smoke, branch coverage, mutation testing, cyclomatic complexity, module-size limits, dependency contracts, static analysis, supply-chain checks, and GitHub CI. It does not claim that metrics prove correctness.
+The repository implements unit and integration tests, Gherkin acceptance tests, a command-boundary QA smoke, branch coverage, mutation testing, cyclomatic complexity, module-size limits, dependency contracts, static analysis, supply-chain checks, and GitHub CI. A fail-closed `loop-policy.toml` adds iteration, time, token, isolation, independent-verifier, human-approval, and stopping constraints. It does not claim that metrics prove correctness.
 
 ## Quick start
 
@@ -24,7 +24,7 @@ bash tools/dev_check.sh
 bash tools/mutation_check.sh
 ```
 
-The full gate writes machine-readable evidence to `artifacts/`. See the [quality gate rationale](docs/quality-gates.md), [article research](docs/article-notes.md), and [architecture](docs/architecture.md).
+The full gate writes machine-readable evidence to `artifacts/`. See the [quality gate rationale](docs/quality-gates.md), [article research](docs/article-notes.md), [Loop Engineering sources and policy](docs/loop-engineering.md), and [architecture](docs/architecture.md).
 
 ## License
 

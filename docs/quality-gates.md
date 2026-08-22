@@ -14,6 +14,7 @@
 | 分層是否被破壞 | Import Linter | contract kept | contract 本身是否完整 |
 | 型別與常見錯誤 | strict mypy + Ruff | 0 finding | 動態資料與執行環境 |
 | 依賴是否有已知漏洞 | pip-audit/Dependabot/CodeQL | 不接受阻斷問題 | exploitability 與修補優先順序 |
+| Agent loop 是否有界 | policy checker | 成本、迭代、時間、隔離、獨立 verifier 與人工核准條件完整 | 是否值得自動化與最終發布責任 |
 
 ## 停止條件
 
@@ -22,6 +23,7 @@
 - Quick 顯示 `QUICK GATE GREEN` 即停止。
 - Full 顯示 `FULL GATE GREEN`，且 `artifacts/quality-summary.json` 的 `passed` 為 `true` 即停止。
 - Mutation 的 `mutmut-cicd-stats.json` 必須有非零 total，且 `check_mutation_score.py` 回傳 `passed: true`。
+- Loop 在成功、預算用盡、重複失敗、驗證失敗或需要人工核准時必須進入 terminal state，不得自行續跑。
 
 失敗時只針對缺少的證據重跑；不要為了提高信心重複跑已通過的高成本關卡。
 
