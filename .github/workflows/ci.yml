@@ -60,7 +60,7 @@ jobs:
 
       - name: Upload quantitative evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: quality-evidence-${{ matrix.os }}-py${{ matrix.python-version }}
           path: artifacts/
@@ -94,7 +94,7 @@ jobs:
 
       - name: Upload mutation evidence
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: mutation-evidence
           path: mutants/mutmut-cicd-stats.json
