@@ -24,7 +24,7 @@ bash tools/dev_check.sh
 bash tools/mutation_check.sh
 ```
 
-The full gate writes machine-readable evidence to `artifacts/`. See the [quality gate rationale](docs/quality-gates.md), [article research](docs/article-notes.md), [Loop Engineering sources and policy](docs/loop-engineering.md), and [architecture](docs/architecture.md).
+The full gate writes machine-readable evidence to `artifacts/`. See the [engineering principles](docs/engineering-principles.md), [quality gate rationale](docs/quality-gates.md), [bounded Loop Engineering policy](docs/loop-engineering.md), and [architecture](docs/architecture.md).
 
 ## License
 
