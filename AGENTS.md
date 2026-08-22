@@ -19,6 +19,14 @@
 - 達到成功、成本上限、重複失敗或人工核准邊界時立即停止。
 - 不允許 loop 自動合併、直接推送 `main`、處理秘密或核准高風險外部寫入。
 
+## 合併與依賴維護
+
+- **合併任何 PR 前必須讀完 diff**，包含 Dependabot 的。CI 綠燈證明測試沒紅，不證明改動是你要的；
+  自動化 PR 一樣會改宣告、改 workflow 權限、改 action 版本。看不懂就先問，不要因為是機器開的就放行。
+- 依賴宣告落後現行版時，正當的處理是升版、加 `# freshness-hold:` 說明為何維持，或在
+  `.github/dependency-deferrals.json` 記下延後理由與當時版本。**調高下限不是消音的方法**，
+  細節見 [`docs/quality-gates.md`](docs/quality-gates.md)。
+
 ## 驗證
 
 Windows 日常：
