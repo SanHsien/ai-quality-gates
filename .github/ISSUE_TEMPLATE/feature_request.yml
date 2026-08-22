@@ -1,0 +1,19 @@
+name: Feature request
+description: 提議新的行為或品質關卡
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: 問題
+      description: 目前缺少哪一種可觀察行為或失敗證據？
+    validations:
+      required: true
+  - type: textarea
+    id: acceptance
+    attributes:
+      label: 驗收條件
+      description: 請用具體輸入、輸出、邊界或 Given/When/Then 描述。
+    validations:
+      required: true

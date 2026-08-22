@@ -1,0 +1,102 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  validate:
+    name: ${{ matrix.os }} / Python ${{ matrix.python-version }}
+    runs-on: ${{ matrix.os }}
+    timeout-minutes: 15
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - os: ubuntu-latest
+            python-version: "3.11"
+          - os: windows-latest
+            python-version: "3.14"
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8"
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: ${{ matrix.python-version }}
+
+      - name: Install uv
+        run: python -m pip install "uv>=0.12,<1"
+
+      - name: Sync locked dependencies
+        env:
+          UV_PROJECT_ENVIRONMENT: ${{ runner.os == 'Windows' && '.venv' || '.venv-linux' }}
+        run: uv sync --frozen --python ${{ matrix.python-version }}
+
+      - name: Canonical Windows gate
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: pwsh -NoProfile -File tools/dev_check.ps1
+
+      - name: Canonical Linux gate
+        if: runner.os == 'Linux'
+        shell: bash
+        run: bash tools/dev_check.sh
+
+      - name: Upload quantitative evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: quality-evidence-${{ matrix.os }}-py${{ matrix.python-version }}
+          path: artifacts/
+          if-no-files-found: warn
+          retention-days: 14
+
+  mutation:
+    name: Mutation gate / Python 3.12
+    needs: validate
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8"
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+
+      - name: Install uv
+        run: python -m pip install "uv>=0.12,<1"
+
+      - name: Run fail-closed mutation gate
+        shell: bash
+        run: bash tools/mutation_check.sh
+
+      - name: Upload mutation evidence
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: mutation-evidence
+          path: mutants/mutmut-cicd-stats.json
+          if-no-files-found: warn
+          retention-days: 14
