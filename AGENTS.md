@@ -21,6 +21,7 @@
 
 ## 合併與依賴維護
 
+- 一般修改使用短期 branch，開 PR 後讀完整 diff，等既有 CI / CodeQL 通過再 squash merge 回 `main`；不要直接推進主線。
 - **合併任何 PR 前必須讀完 diff**，包含 Dependabot 的。CI 綠燈證明測試沒紅，不證明改動是你要的；
   自動化 PR 一樣會改宣告、改 workflow 權限、改 action 版本。看不懂就先問，不要因為是機器開的就放行。
 - 依賴宣告落後現行版時，正當的處理是升版、加 `# freshness-hold:` 說明為何維持，或在
