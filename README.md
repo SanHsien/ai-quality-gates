@@ -92,6 +92,19 @@ uv run quality-gate-demo quote --input examples\order.json
 
 高 coverage 只能證明程式被執行，mutation 只能檢查工具能產生的語意變化，Gherkin 也可能把錯誤需求寫得很精準。人仍須負責需求、關鍵邊界、風險分級、架構契約與發布決策；自動化關卡提供的是可重現的反證能力，不是正確性的數學證明。
 
+## 相關工具
+
+這四個 repo 各自治理 AI coding 的一層，可以單獨用，也可以疊起來用：
+
+| 層 | Repo | 做什麼 |
+| --- | --- | --- |
+| 派工決策 | [agent-advisor](https://github.com/SanHsien/agent-advisor) | 風險分流路由 `solo`／`delegate`／`audit`／`full`：決定這件事要不要派工、派給誰 |
+| 動作攔截 | [harness-guard](https://github.com/SanHsien/harness-guard) | agent runtime hook，在動手前後與收工時實際攔截危險指令、無證據宣稱、紅燈提交 |
+| 產出品質 | **AI Quality Gates（你在這裡）** | 可執行規格與量化門檻：覆蓋率、突變測試、圈複雜度、依賴結構、有界 loop policy |
+| 交付流程 | [paulsha-cortex](https://github.com/SanHsien/paulsha-cortex) | 多 Agent lifecycle：Candidate → Verify → Independent Review → Delivery → CompletionRecord |
+
+相鄰但不同層：[opencodex](https://github.com/SanHsien/opencodex) 是供應商代理，決定這些 agent 背後能跑哪些 LLM，本身不約束 agent 行為。
+
 ## 授權
 
 [MIT](LICENSE)

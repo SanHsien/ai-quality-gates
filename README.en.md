@@ -26,6 +26,19 @@ bash tools/mutation_check.sh
 
 The full gate writes machine-readable evidence to `artifacts/`. See the [engineering principles](docs/engineering-principles.md), [quality gate rationale](docs/quality-gates.md), [bounded Loop Engineering policy](docs/loop-engineering.md), and [architecture](docs/architecture.md).
 
+## Related tools
+
+These four repositories each govern a different layer of AI coding. Use one on its own, or stack them:
+
+| Layer | Repo | What it does |
+| --- | --- | --- |
+| Dispatch decision | [agent-advisor](https://github.com/SanHsien/agent-advisor) | Risk-gated routing -- `solo`, `delegate`, `audit`, `full`: whether to delegate at all, and to whom |
+| Action interception | [harness-guard](https://github.com/SanHsien/harness-guard) | Agent runtime hooks that actually block dangerous commands, unevidenced claims, and commits over red tests |
+| Output quality | **AI Quality Gates (you are here)** | Executable specs and quantified thresholds: coverage, mutation, cyclomatic complexity, dependency structure, bounded loop policy |
+| Delivery lifecycle | [paulsha-cortex](https://github.com/SanHsien/paulsha-cortex) | Multi-agent lifecycle: Candidate -> Verify -> Independent Review -> Delivery -> CompletionRecord |
+
+Adjacent but a different layer: [opencodex](https://github.com/SanHsien/opencodex) is a provider proxy that decides which LLMs these agents can run on. It does not constrain agent behaviour.
+
 ## License
 
 [MIT](LICENSE)
