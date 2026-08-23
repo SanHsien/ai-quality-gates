@@ -1,0 +1,26 @@
+name: Bug report
+description: 回報可重現的行為錯誤
+title: "[Bug]: "
+labels: [bug]
+body:
+  - type: textarea
+    id: behavior
+    attributes:
+      label: 實際行為
+      description: 請提供最小輸入與實際輸出。
+    validations:
+      required: true
+  - type: textarea
+    id: expected
+    attributes:
+      label: 預期行為
+      description: 說明預期規則與來源。
+    validations:
+      required: true
+  - type: textarea
+    id: environment
+    attributes:
+      label: 環境與驗證
+      description: OS、Python 版本與已執行的 gate。
+    validations:
+      required: true

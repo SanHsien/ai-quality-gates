@@ -1,0 +1,89 @@
+[build-system]
+requires = ["hatchling>=1.32,<2"]
+build-backend = "hatchling.build"
+
+[project]
+name = "ai-quality-gates"
+version = "0.1.0"
+description = "Executable quality gates for AI-assisted Python development"
+readme = "README.md"
+requires-python = ">=3.11"
+license = "MIT"
+authors = [{ name = "SanHsien" }]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3 :: Only",
+]
+
+[project.urls]
+Homepage = "https://github.com/SanHsien/ai-quality-gates"
+Issues = "https://github.com/SanHsien/ai-quality-gates/issues"
+Repository = "https://github.com/SanHsien/ai-quality-gates.git"
+
+[project.scripts]
+quality-gate-demo = "quality_gate_demo.cli:main"
+
+[dependency-groups]
+dev = [
+  "behave>=1.3.3,<2",
+  "coverage>=7.15,<8",
+  "hatchling>=1.32,<2",
+  "import-linter>=2.13,<3",
+  "mutmut>=3.7,<4",
+  "mypy>=2.3,<3",
+  "pip-audit>=2.10,<3",
+  "pytest>=9.1,<10",
+  "pytest-cov>=7.1,<8",
+  "radon>=6.0,<7",
+  "ruff>=0.16,<1",
+  "xenon>=0.9.3,<1",
+]
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/quality_gate_demo"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+addopts = ["--strict-config", "--strict-markers"]
+pythonpath = ["."]
+
+[tool.coverage.run]
+branch = true
+source = ["quality_gate_demo"]
+omit = ["src/quality_gate_demo/__main__.py"]
+
+[tool.coverage.report]
+fail_under = 95
+show_missing = true
+skip_covered = true
+
+[tool.ruff]
+target-version = "py311"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "UP", "B", "C4", "SIM"]
+
+[tool.mypy]
+python_version = "3.11"
+strict = true
+files = ["src", "tools"]
+
+[[tool.mypy.overrides]]
+module = ["radon.*"]
+ignore_missing_imports = true
+
+[tool.importlinter]
+root_packages = ["quality_gate_demo"]
+
+[[tool.importlinter.contracts]]
+name = "Domain rules do not depend on delivery adapters"
+type = "forbidden"
+source_modules = ["quality_gate_demo.pricing"]
+forbidden_modules = ["quality_gate_demo.cli"]
+
+[tool.mutmut]
+source_paths = ["src"]
+only_mutate = ["src/quality_gate_demo/pricing.py"]
+pytest_add_cli_args_test_selection = ["tests/unit/test_pricing.py"]
