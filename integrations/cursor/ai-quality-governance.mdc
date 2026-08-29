@@ -1,0 +1,27 @@
+---
+description: Apply repository-native AI quality gates before completion; never treat one language's thresholds as universal
+alwaysApply: true
+---
+
+# Global AI quality governance
+
+For every Git repository opened in Cursor:
+
+1. Before implementation, discover the repository's own instructions and verification entry points. Prefer, in order: `.ai-quality-gates.json`, `tools/dev_check.ps1`, `tools/dev_check.sh`, declared package scripts, then conservative ecosystem defaults.
+2. Do not copy the Python-specific 95% coverage, mutation, complexity, or architecture contracts from `ai-quality-gates` into a non-Python repository. Adopt each gate only after the repository has a matching tool and acceptance contract.
+3. After changing code, run the narrowest relevant focused check. Before claiming completion, run the discovered quick gate and cite the command plus result. Run a full or mutation gate only when the repository defines one or the change risk requires it.
+4. Run repository-native commands only when the user-local trust policy authorizes the repository. For untrusted repositories, or when no repository-specific gate exists, use a trusted Git executable to check both working-tree and staged diffs. Report this as baseline-only evidence, never as build, test, coverage, or release verification. A timed-out, unavailable, or failing gate is not green.
+5. Use `quality-loop` only for repeatable work with deterministic acceptance. Keep the loop bounded, use an independent checker, isolate work, and stop on success, repeated failure, budget exhaustion, policy violation, or human-approval boundaries.
+6. Never let a gate or loop auto-merge, deploy, handle secrets, approve destructive actions, or bypass repository-specific instructions.
+
+The global Cursor stop hook runs `~/.cursor/hooks/ai_quality_gate.py`. Repositories may override detection with:
+
+```json
+{
+  "enabled": true,
+  "quick": "<safe repository-native command>",
+  "timeout": 180
+}
+```
+
+Set `"enabled": false` for an explicit repository opt-out. Do not add this file merely to silence a failing gate.

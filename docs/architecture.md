@@ -27,7 +27,8 @@ trigger -> isolated maker -> deterministic gates -> independent checker
 - `tests/unit/`：純規則與邊界。
 - `tests/integration/`：檔案輸入與 CLI 輸出契約。
 - `features/`：人可檢視的 Gherkin 驗收規格。
-- `tools/`：Windows/Linux 開發入口、QA、量測與 fail-closed checker。
+- `tools/`：Windows/Linux 開發入口、QA、量測、fail-closed checker，以及 Cursor 全域 gate router／installer。
+- `integrations/cursor/`：跨 repo always-apply 治理規則；只要求 repo-native gate，不搬運 Python 專屬門檻。
 - `.github/`：跨平台 CI、安全掃描、依賴更新與協作模板。
 - `.agents/skills/quality-loop/`：可重用的有界 agent loop 操作契約。
 - `loop-policy.toml`：可機械驗證的成本、隔離、驗證與人工核准政策。

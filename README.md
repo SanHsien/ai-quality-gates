@@ -77,6 +77,17 @@ uv run quality-gate-demo quote --input examples\order.json
 
 `Full` 會把 `coverage.json`、`junit.xml` 與 `quality-summary.json` 寫入未追蹤的 `artifacts/`。CI 也會保存這些證據。
 
+## Cursor 全域治理
+
+本 repo 的 Python 門檻不能原樣硬套所有技術棧；可移植的是「找 repo 自己的 gate、執行、保存證據、失敗不得宣稱完成」。全域 Cursor adapter 會動態探測目前 repo，因此同時涵蓋現有與未來 clone／init 的 repo，不逐庫寫入設定：
+
+```powershell
+python tools/install_cursor_global.py --dry-run --trusted-github-owner <你的 GitHub owner>
+python tools/install_cursor_global.py --trusted-github-owner <你的 GitHub owner>
+```
+
+詳細探測順序、安全邊界、override 與回退見 [Cursor 全域治理安裝](docs/cursor-global-governance.md)。
+
 ## 專案文件
 
 - [架構](docs/architecture.md)

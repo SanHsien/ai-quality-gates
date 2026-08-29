@@ -26,6 +26,17 @@ bash tools/mutation_check.sh
 
 The full gate writes machine-readable evidence to `artifacts/`. See the [engineering principles](docs/engineering-principles.md), [quality gate rationale](docs/quality-gates.md), [bounded Loop Engineering policy](docs/loop-engineering.md), and [architecture](docs/architecture.md).
 
+## Global Cursor governance
+
+The Python thresholds in this repository must not be copied blindly into every stack. The portable contract is: discover the repository's own gate, run it, retain evidence, and never claim verified completion over a missing or failing gate. The global Cursor adapter resolves the active repository dynamically, so it covers both existing and future cloned or initialized repositories without writing configuration into each one:
+
+```powershell
+python tools/install_cursor_global.py --dry-run --trusted-github-owner <your GitHub owner>
+python tools/install_cursor_global.py --trusted-github-owner <your GitHub owner>
+```
+
+See [Cursor global governance installation](docs/cursor-global-governance.md) for detection order, safety boundaries, overrides, and rollback.
+
 ## Related tools
 
 These four repositories each govern a different layer of AI coding. Use one on its own, or stack them:

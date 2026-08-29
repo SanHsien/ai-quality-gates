@@ -13,6 +13,7 @@
 - 每月依賴新鮮度檢查：`tools/check_dependency_freshness.py` 與 `Dependency freshness` workflow，
   比對宣告與 PyPI 現行版；紅燈的兩條出口是 `# freshness-hold:` 與
   `.github/dependency-deferrals.json`，兩者都要寫理由。
+- Cursor 全域治理 adapter：動態探測現在與未來 repo 的正式 gate，以嚴格 GitHub host 與使用者層 owner／path 信任政策防止外部 repo 自動執行命令，離線執行、以內容敏感的 repo state fingerprint 去重；未受信任或無專用 gate 時，以 PATH 解析出的可信 Git 檢查 working-tree 與 staged whitespace。
 
 ### Changed
 
