@@ -1,0 +1,81 @@
+name: Dependency freshness
+
+# Dependabot 一次回答一個套件有沒有新版；這支每月回答「宣告落後多少」。
+# 本 repo 用 uv.lock 鎖版本，所以宣告很容易悄悄落後於實際跑的版本——
+# 這支就是在看那個落差。只讀不寫：不安裝、不改宣告、不合併。
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - pyproject.toml
+      - tools/check_dependency_freshness.py
+      - .github/dependency-deferrals.json
+      - .github/workflows/dependency-freshness.yml
+  schedule:
+    # 每月 1 日 11:00（Asia/Taipei）。
+    - cron: "0 3 1 * *"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pull-requests: read
+
+concurrency:
+  group: dependency-freshness
+  cancel-in-progress: true
+
+jobs:
+  freshness:
+    name: Declared floors vs PyPI
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      PYTHONUTF8: "1"
+      PYTHONIOENCODING: "utf-8"
+
+    steps:
+      - name: Check out source
+        uses: actions/checkout@v7
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@v7
+        with:
+          python-version: "3.14"
+
+      - name: Compare declared floors with PyPI
+        id: floors
+        run: >-
+          python tools/check_dependency_freshness.py
+          --github-output
+          --output dependency-freshness-report.md
+
+      - name: Append open Dependabot pull requests
+        id: tracker
+        env:
+          GH_TOKEN: ${{ github.token }}
+          FLOORS_NEED_ATTENTION: ${{ steps.floors.outputs.needs_attention }}
+        run: |
+          open_prs="$(gh pr list --state open --author app/dependabot --json number,title,url)"
+          needs_attention="$FLOORS_NEED_ATTENTION"
+          {
+            echo
+            echo "## Open Dependabot pull requests"
+            echo
+            if [ "$(jq 'length' <<< "$open_prs")" -eq 0 ]; then
+              echo "- None"
+            else
+              jq -r '.[] | "- [#\(.number) \(.title)](\(.url))"' <<< "$open_prs"
+              needs_attention="true"
+            fi
+          } >> dependency-freshness-report.md
+          echo "needs_attention=$needs_attention" >> "$GITHUB_OUTPUT"
+          cat dependency-freshness-report.md >> "$GITHUB_STEP_SUMMARY"
+
+      - name: Mark maintenance as required
+        if: steps.tracker.outputs.needs_attention == 'true'
+        run: |
+          echo "::error::依賴維護待處理，見 workflow summary 與 Dependabot PR。"
+          exit 1
