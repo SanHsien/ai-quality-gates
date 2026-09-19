@@ -4,6 +4,8 @@ set -euo pipefail
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$repo_root"
 export UV_PROJECT_ENVIRONMENT=".venv-linux"
+summary_path="artifacts/quality-summary.json"
+summary_stage_path="${summary_path}.pending"
 
 quick=false
 mutation=false
@@ -15,6 +17,11 @@ for argument in "$@"; do
   esac
 done
 
+if ! "$quick"; then
+  mkdir -p artifacts
+  rm -f "$summary_path" "$summary_stage_path"
+fi
+
 uv run python -m compileall -q src tools tests features
 uv run ruff format --check .
 uv run ruff check .
@@ -25,7 +32,6 @@ uv run python -m tools.check_loop_policy
 if "$quick"; then
   uv run pytest -q
 else
-  mkdir -p artifacts
   uv run pytest -q --cov=quality_gate_demo --cov-branch --cov-report=term-missing \
     --cov-report=json:artifacts/coverage.json --junitxml=artifacts/junit.xml
 fi
@@ -38,9 +44,10 @@ uv run python tools/check_module_size.py src tools --max-lines 200
 
 if ! "$quick"; then
   uv run python tools/check_docs.py
-  uv run python -m tools.write_quality_summary
   uv run pip-audit
   uv build
+  uv run python -m tools.write_quality_summary --output "$summary_stage_path"
+  mv "$summary_stage_path" "$summary_path"
 fi
 
 if "$mutation"; then

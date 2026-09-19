@@ -43,7 +43,8 @@
 每次 gate 只需要一次權威結果：
 
 - Quick 顯示 `QUICK GATE GREEN` 即停止。
-- Full 顯示 `FULL GATE GREEN`，且 `artifacts/quality-summary.json` 的 `passed` 為 `true` 即停止。
+- Full 顯示 `FULL GATE GREEN`，且 `artifacts/quality-summary.json` 為 schema v1、
+  `profile` 是 `full`、`commit` 綁定目前 HEAD、所有 gates 為 `true` 時即停止。
 - Mutation 的 `mutmut-cicd-stats.json` 必須有非零 total，且 `check_mutation_score.py` 回傳 `passed: true`。
 - Loop 在成功、預算用盡、重複失敗、驗證失敗或需要人工核准時必須進入 terminal state，不得自行續跑。
 

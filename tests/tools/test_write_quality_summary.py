@@ -40,6 +40,7 @@ def test_summary_reports_coverage_tests_complexity_and_module_size(tmp_path: Pat
     coverage_path, junit_path = _write_reports(tmp_path, coverage=95.0)
 
     summary = build_summary(
+        commit="a" * 40,
         coverage_path=coverage_path,
         junit_path=junit_path,
         source_paths=[source],
@@ -49,6 +50,9 @@ def test_summary_reports_coverage_tests_complexity_and_module_size(tmp_path: Pat
     )
 
     assert summary["passed"] is True
+    assert summary["schema_version"] == 1
+    assert summary["profile"] == "full"
+    assert summary["commit"] == "a" * 40
     assert summary["coverage"]["percent"] == 95.0
     assert summary["tests"]["total"] == 5
     assert summary["complexity"]["maximum"] == 2
@@ -62,6 +66,7 @@ def test_summary_fails_closed_when_a_threshold_or_test_fails(tmp_path: Path) -> 
     coverage_path, junit_path = _write_reports(tmp_path, coverage=94.9, failures=1)
 
     summary = build_summary(
+        commit="b" * 40,
         coverage_path=coverage_path,
         junit_path=junit_path,
         source_paths=[source],

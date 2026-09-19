@@ -4,6 +4,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import subprocess
 import xml.etree.ElementTree as element_tree
 from collections.abc import Sequence
 from pathlib import Path
@@ -51,6 +52,7 @@ def _measure_source(source_paths: Sequence[Path]) -> tuple[dict[str, Any], dict[
 
 def build_summary(
     *,
+    commit: str,
     coverage_path: Path,
     junit_path: Path,
     source_paths: Sequence[Path],
@@ -75,6 +77,9 @@ def build_summary(
         "module_size": modules["maximum_lines"] <= maximum_module_lines,
     }
     return {
+        "schema_version": 1,
+        "profile": "full",
+        "commit": commit,
         "passed": all(gates.values()),
         "gates": gates,
         "thresholds": {
@@ -99,8 +104,18 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--maximum-complexity", type=int, default=10)
     parser.add_argument("--maximum-module-lines", type=int, default=200)
     args = parser.parse_args(argv)
+    commit_proc = subprocess.run(
+        ["git", "rev-parse", "--verify", "HEAD"],
+        capture_output=True,
+        text=True,
+        check=False,
+    )
+    commit = commit_proc.stdout.strip()
+    if commit_proc.returncode != 0 or len(commit) not in (40, 64):
+        parser.error("current git HEAD could not be resolved to a full object id")
     sources = args.source or [Path("src"), Path("tools")]
     summary = build_summary(
+        commit=commit,
         coverage_path=args.coverage,
         junit_path=args.junit,
         source_paths=sources,

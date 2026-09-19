@@ -12,6 +12,8 @@ Set-Location -LiteralPath $repoRoot
 $env:UV_PROJECT_ENVIRONMENT = ".venv"
 $env:PYTHONUTF8 = "1"
 $env:PYTHONIOENCODING = "utf-8"
+$summaryPath = Join-Path $repoRoot "artifacts\quality-summary.json"
+$summaryStagePath = "$summaryPath.pending"
 
 function Invoke-UvStep {
     param(
@@ -26,6 +28,11 @@ function Invoke-UvStep {
     if ($LASTEXITCODE -ne 0) { throw "$Label failed with exit code $LASTEXITCODE" }
 }
 
+if (-not $Quick) {
+    New-Item -ItemType Directory -Path "artifacts" -Force | Out-Null
+    Remove-Item -LiteralPath $summaryPath, $summaryStagePath -Force -ErrorAction SilentlyContinue
+}
+
 Invoke-UvStep "Compile maintained Python" @("python", "-m", "compileall", "-q", "src", "tools", "tests", "features")
 Invoke-UvStep "Ruff format" @("ruff", "format", "--check", ".")
 Invoke-UvStep "Ruff lint" @("ruff", "check", ".")
@@ -36,7 +43,6 @@ Invoke-UvStep "Bounded loop policy" @("python", "-m", "tools.check_loop_policy")
 if ($Quick) {
     Invoke-UvStep "Unit and integration tests" @("pytest", "-q")
 } else {
-    New-Item -ItemType Directory -Path "artifacts" -Force | Out-Null
     Invoke-UvStep "Tests with branch coverage" @(
         "pytest", "-q", "--cov=quality_gate_demo", "--cov-branch",
         "--cov-report=term-missing", "--cov-report=json:artifacts/coverage.json",
@@ -52,11 +58,14 @@ Invoke-UvStep "Module size" @("python", "tools/check_module_size.py", "src", "to
 
 if (-not $Quick) {
     Invoke-UvStep "Markdown links" @("python", "tools/check_docs.py")
-    Invoke-UvStep "Quantitative summary" @("python", "-m", "tools.write_quality_summary")
     Invoke-UvStep "Dependency audit" @("pip-audit")
     Write-Host "==> Build wheel and source distribution"
     & uv build
     if ($LASTEXITCODE -ne 0) { throw "Package build failed with exit code $LASTEXITCODE" }
+    Invoke-UvStep "Stage quantitative summary" @(
+        "python", "-m", "tools.write_quality_summary", "--output", $summaryStagePath
+    )
+    Move-Item -LiteralPath $summaryStagePath -Destination $summaryPath
 }
 
 if ($Mutation) {
