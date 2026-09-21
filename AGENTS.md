@@ -9,6 +9,7 @@
 - `quality_gate_demo.pricing` 不可依賴 CLI 或其他 delivery adapter。
 - 每個維護 Python module 不得超過 200 個非空、非 comment-only 行。
 - 不降低 coverage、complexity、module-size 或 mutation 門檻來讓變更通過。
+- 先確認 Gherkin／QA 對需求的描述，再改 implementation；不得用新增無意義測試或排除檔案換取綠燈。
 - 不提交 `.venv*`、`artifacts/`、`mutants/`、coverage、token、cookie 或密碼。
 
 ## 自動化迴圈
