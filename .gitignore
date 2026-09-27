@@ -1,0 +1,15 @@
+.coverage
+.mypy_cache/
+.pytest_cache/
+.ruff_cache/
+.venv/
+.venv-linux/
+.venv-mutation/
+__pycache__/
+artifacts/
+dist/
+htmlcov/
+mutants/
+*.egg-info/
+loop-state/*
+!loop-state/README.md
