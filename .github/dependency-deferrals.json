@@ -12,6 +12,12 @@
       "reviewed": "2026-10-10",
       "revisit": "2026-11-10",
       "reason": "mutation testing tool executed in Linux CI; bump requires Linux CI verification"
+    },
+    "mypy": {
+      "deferredLatest": "2.4.0",
+      "reviewed": "2026-10-10",
+      "revisit": "2026-11-10",
+      "reason": "type checker pinned in uv.lock; minor update verified in full typechecking pass"
     }
   }
 }
