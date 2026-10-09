@@ -1,0 +1,17 @@
+{
+  "$comment": "每月依賴檢查用：已經看過、但這次不升的決定。deferredLatest 記下當時審視的版本，PyPI 一超過它就自動恢復提醒。",
+  "deferrals": {
+    "import-linter": {
+      "deferredLatest": "2.15",
+      "reviewed": "2026-10-10",
+      "revisit": "2026-11-10",
+      "reason": "dev toolchain pinned in uv.lock; bump verified in full lockfile maintenance pass"
+    },
+    "mutmut": {
+      "deferredLatest": "3.8.0",
+      "reviewed": "2026-10-10",
+      "revisit": "2026-11-10",
+      "reason": "mutation testing tool executed in Linux CI; bump requires Linux CI verification"
+    }
+  }
+}
