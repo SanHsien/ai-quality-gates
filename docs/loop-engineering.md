@@ -61,3 +61,11 @@ Maker 宣稱「完成」不具終止效力。只有 checker 的客觀 gate 能�
 ## 刻意未自動化
 
 本 repo 目前只提供可執行政策與品質關卡，不提供無人值守 runner，也不自動建立 connector、提交、推送、合併或部署。先用人工觸發證明工作流穩定，再考慮加入 scheduler；`loop.enabled = false` 是有意的安全預設。
+
+## Agent Advisor 成本合約整合
+
+maker／checker 分離、loop-policy 的 token／時間／迭代上限及 machine evidence 不變。
+派工只傳必要上下文，不重做已派出的實作；品質 gate 已有有效證據時不要為儀式重复執行。
+沿用必須查核完整輸入狀態、命令、環境與 freshness；repo 要求的獨立 checker、Full 或 Mutation 仍執行。
+只有 token 而沒有實際費率／價格日期不能宣稱金額；timeout、缺失用量與未知費用不填零。
+不新增模型比較實驗、固定顧問或自動平行 runner；參考 agent-advisor 五版的 cost-policy。
