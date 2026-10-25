@@ -18,6 +18,18 @@
       "reviewed": "2026-10-10",
       "revisit": "2026-11-10",
       "reason": "type checker pinned in uv.lock; minor update verified in full typechecking pass"
+    },
+    "ruff": {
+      "deferredLatest": "0.17.2",
+      "reviewed": "2026-10-25",
+      "revisit": "2026-11-25",
+      "reason": "lock moved to ruff 0.17.2 and the full gate is green; floor not raised, compatibility with the floor is not separately tested"
+    },
+    "coverage": {
+      "deferredLatest": "7.17.0",
+      "reviewed": "2026-10-25",
+      "revisit": "2026-11-25",
+      "reason": "lock moved to coverage 7.17.0 and the full gate is green; floor not raised, compatibility with the floor is not separately tested"
     }
   }
 }
