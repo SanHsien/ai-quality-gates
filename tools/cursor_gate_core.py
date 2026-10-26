@@ -2,10 +2,13 @@
 
 from __future__ import annotations
 
+import contextlib
 import hashlib
 import json
 import os
+import signal
 import subprocess
+import sys
 from collections.abc import Callable
 from dataclasses import dataclass
 from pathlib import Path
@@ -147,19 +150,45 @@ def _default_runner(command: str, repo: Path, timeout: int) -> tuple[int, str, s
         }
     )
     try:
-        proc = subprocess.run(
-            command, cwd=repo, shell=True, capture_output=True, timeout=timeout, env=env
+        proc = subprocess.Popen(
+            command,
+            cwd=repo,
+            shell=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            env=env,
+            start_new_session=os.name != "nt",
         )
-    except subprocess.TimeoutExpired as exc:
-        out = (exc.stdout or b"") + (exc.stderr or b"")
-        return 124, out.decode("utf-8", "replace"), "gate timed out"
     except OSError as exc:
         return 126, "", str(exc)
+    try:
+        stdout, stderr = proc.communicate(timeout=timeout)
+    except subprocess.TimeoutExpired:
+        _kill_tree(proc)
+        stdout, stderr = proc.communicate()
+        out = (stdout or b"") + (stderr or b"")
+        return 124, out.decode("utf-8", "replace"), "gate timed out"
     return (
         proc.returncode,
-        proc.stdout.decode("utf-8", "replace"),
-        proc.stderr.decode("utf-8", "replace"),
+        stdout.decode("utf-8", "replace"),
+        stderr.decode("utf-8", "replace"),
     )
+
+
+def _kill_tree(proc: subprocess.Popen[bytes]) -> None:
+    """Kill the shell and its children; killing only the shell leaves them holding the pipes."""
+    if sys.platform == "win32":
+        taskkill = Path(os.environ.get("SYSTEMROOT", r"C:\Windows")) / "System32" / "taskkill.exe"
+        with contextlib.suppress(OSError):
+            subprocess.run(
+                [str(taskkill), "/F", "/T", "/PID", str(proc.pid)],
+                capture_output=True,
+                check=False,
+            )
+    else:
+        with contextlib.suppress(OSError):
+            os.killpg(proc.pid, signal.SIGKILL)
+    proc.kill()
 
 
 def run_gate(

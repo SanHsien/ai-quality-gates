@@ -118,7 +118,7 @@ def validate_loop_policy(path: Path) -> list[str]:
 
     try:
         policy = cast(dict[str, object], tomllib.loads(path.read_text(encoding="utf-8")))
-    except (OSError, tomllib.TOMLDecodeError) as error:
+    except (OSError, ValueError) as error:
         return [f"policy could not be read: {error}"]
 
     violations: list[str] = []

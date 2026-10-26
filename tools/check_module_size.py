@@ -32,6 +32,8 @@ def iter_python_modules(paths: Sequence[Path]) -> list[Path]:
             modules.add(path)
         elif path.is_dir():
             modules.update(path.rglob("*.py"))
+        elif not path.exists():
+            raise FileNotFoundError(f"path does not exist: {path}")
     return sorted(modules)
 
 
@@ -54,7 +56,11 @@ def main(argv: Sequence[str] | None = None) -> int:
     parser.add_argument("--max-lines", type=int, default=200)
     args = parser.parse_args(argv)
 
-    violations = find_oversized_modules(args.paths, max_lines=args.max_lines)
+    try:
+        violations = find_oversized_modules(args.paths, max_lines=args.max_lines)
+    except FileNotFoundError as error:
+        print(f"MODULE SIZE ERROR: {error}")
+        return 2
     if violations:
         for violation in violations:
             print(f"{violation.path}: {violation.lines} maintained lines (limit {violation.limit})")

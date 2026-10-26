@@ -25,7 +25,8 @@ def evaluate_mutation_stats(path: Path, *, minimum_score: float) -> dict[str, An
     killed = int(stats["killed"])
     score = round(killed / total * 100, 2) if total else 0.0
     problematic = {name: int(stats.get(name, 0)) for name in PROBLEM_FIELDS}
-    passed = total > 0 and score >= minimum_score and not any(problematic.values())
+    reaches_minimum = total > 0 and killed <= total and killed * 100 >= minimum_score * total
+    passed = reaches_minimum and not any(problematic.values())
     return {
         "passed": passed,
         "score": score,

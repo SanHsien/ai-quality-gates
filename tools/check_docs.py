@@ -3,6 +3,7 @@
 from __future__ import annotations
 
 import argparse
+import os
 import re
 from collections.abc import Sequence
 from dataclasses import dataclass
@@ -27,9 +28,28 @@ def iter_markdown_files(root: Path) -> list[Path]:
         for path in root.rglob("*.md")
         if not any(
             part.startswith(".venv") or part in {".git", "artifacts", "mutants"}
-            for part in path.parts
+            for part in path.relative_to(root).parts
         )
     )
+
+
+def _exists_with_exact_case(base: Path, relative: str) -> bool:
+    """Existence that is case-sensitive even on Windows, like GitHub and Linux."""
+
+    current = base
+    for part in relative.replace("\\", "/").split("/"):
+        if part in {"", "."}:
+            continue
+        if part == "..":
+            current = current.parent
+            continue
+        try:
+            if part not in os.listdir(current):
+                return False
+        except OSError:
+            return False
+        current = current / part
+    return True
 
 
 def find_broken_links(repo_root: Path, markdown_files: Sequence[Path]) -> list[BrokenLink]:
@@ -44,8 +64,7 @@ def find_broken_links(repo_root: Path, markdown_files: Sequence[Path]) -> list[B
             path_part = unquote(raw_target.split("#", maxsplit=1)[0])
             if not path_part:
                 continue
-            target = (source.parent / path_part).resolve()
-            if not target.exists():
+            if not _exists_with_exact_case(source.parent, path_part):
                 broken.append(BrokenLink(source=source, target=raw_target))
     return broken
 

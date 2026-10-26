@@ -8,6 +8,7 @@ only: neither the lock file nor the environment is inspected, and nothing is edi
 from __future__ import annotations
 
 import argparse
+import http.client
 import json
 import os
 import re
@@ -126,7 +127,9 @@ def declare(requirement: str, group: str, holds: dict[str, str]) -> Declaration 
 
 
 def parse_group(reqs: Sequence[str], group: str, holds: dict[str, str]) -> list[Declaration]:
-    parsed = (declare(requirement, group, holds) for requirement in reqs)
+    parsed = (
+        declare(requirement, group, holds) for requirement in reqs if isinstance(requirement, str)
+    )
     return [declaration for declaration in parsed if declaration is not None]
 
 
@@ -170,7 +173,7 @@ def fetch_latest(package: str, timeout: float = 10.0) -> str | None:
     try:
         with urllib.request.urlopen(request, timeout=timeout) as response:  # noqa: S310
             payload = json.loads(response.read().decode("utf-8"))
-    except (OSError, ValueError):
+    except (OSError, ValueError, http.client.HTTPException):
         return None
     version = payload.get("info", {}).get("version")
     return str(version) if version else None

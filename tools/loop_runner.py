@@ -201,7 +201,9 @@ def run_bounded_loop(
 
 
 def _default_verifier(command: str) -> tuple[int, str]:
-    p = subprocess.run(command, shell=True, capture_output=True, text=True, check=False)
+    p = subprocess.run(
+        command, shell=True, capture_output=True, text=True, errors="replace", check=False
+    )
     return p.returncode, p.stdout if p.returncode == 0 else (p.stderr or p.stdout)
 
 

@@ -38,8 +38,6 @@ except ModuleNotFoundError:  # installed flat beside this script
 
 # Git writes UTF-8 whatever the Windows ANSI code page is; the locale default would
 # raise on CJK paths and diffs when Cursor starts the hook without UTF-8 mode.
-GIT_TEXT = {"encoding": "utf-8", "errors": "replace"}
-
 __all__ = [
     "GateResult",
     "GateSpec",
@@ -63,7 +61,11 @@ def git_state(repo: Path) -> str:
         ("diff", "--cached", "--binary", "--no-ext-diff"),
     ):
         proc = subprocess.run(
-            [git, "-C", str(repo), *args], capture_output=True, text=True, **GIT_TEXT
+            [git, "-C", str(repo), *args],
+            capture_output=True,
+            text=True,
+            encoding="utf-8",
+            errors="replace",
         )
         parts.append(proc.stdout if proc.returncode == 0 else "NO_HEAD")
     untracked = subprocess.run(
@@ -129,7 +131,9 @@ def evaluate(repo: Path, use_cache: bool = True) -> GateResult:
     mark = fingerprint(repo, spec, git_state(repo))
     path = _state_path()
     state = _load_state(path)
-    cached = state.get(key, {})
+    cached = state.get(key)
+    if not isinstance(cached, dict):
+        cached = {}
     if use_cache and cached.get("fingerprint") == mark:
         exit_code = cached.get("exit_code")
         return GateResult(
@@ -157,7 +161,8 @@ def _payload_repo(payload: dict[str, object]) -> Path | None:
         [git, "-C", candidate, "rev-parse", "--show-toplevel"],
         capture_output=True,
         text=True,
-        **GIT_TEXT,
+        encoding="utf-8",
+        errors="replace",
     )
     return Path(proc.stdout.strip()) if proc.returncode == 0 else None
 

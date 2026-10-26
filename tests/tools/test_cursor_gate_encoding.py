@@ -55,7 +55,8 @@ def test_baseline_survives_cjk_whitespace_error_under_a_legacy_code_page(tmp_pat
     (repo / "note.txt").write_text("三賢測試，行尾空白   \n", encoding="utf-8")
 
     done = _legacy_codepage(
-        "import sys, json; from pathlib import Path; from tools.cursor_gate_baseline import run_baseline;"
+        "import sys, json; from pathlib import Path;"
+        "from tools.cursor_gate_baseline import run_baseline;"
         "print(json.dumps(run_baseline(Path(sys.argv[1]), 30)))",
         str(repo),
     )
