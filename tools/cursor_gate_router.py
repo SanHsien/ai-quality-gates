@@ -36,6 +36,10 @@ except ModuleNotFoundError:  # installed flat beside this script
     from cursor_gate_git import find_trusted_git  # type: ignore[import-not-found,no-redef]
     from cursor_gate_trust import is_trusted_repo  # type: ignore[import-not-found,no-redef]
 
+# Git writes UTF-8 whatever the Windows ANSI code page is; the locale default would
+# raise on CJK paths and diffs when Cursor starts the hook without UTF-8 mode.
+GIT_TEXT = {"encoding": "utf-8", "errors": "replace"}
+
 __all__ = [
     "GateResult",
     "GateSpec",
@@ -58,7 +62,9 @@ def git_state(repo: Path) -> str:
         ("diff", "--binary", "--no-ext-diff"),
         ("diff", "--cached", "--binary", "--no-ext-diff"),
     ):
-        proc = subprocess.run([git, "-C", str(repo), *args], capture_output=True, text=True)
+        proc = subprocess.run(
+            [git, "-C", str(repo), *args], capture_output=True, text=True, **GIT_TEXT
+        )
         parts.append(proc.stdout if proc.returncode == 0 else "NO_HEAD")
     untracked = subprocess.run(
         [git, "-C", str(repo), "ls-files", "--others", "--exclude-standard", "-z"],
@@ -151,6 +157,7 @@ def _payload_repo(payload: dict[str, object]) -> Path | None:
         [git, "-C", candidate, "rev-parse", "--show-toplevel"],
         capture_output=True,
         text=True,
+        **GIT_TEXT,
     )
     return Path(proc.stdout.strip()) if proc.returncode == 0 else None
 

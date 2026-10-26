@@ -38,6 +38,8 @@ def _origin_owner(repo: Path) -> str:
         [git, "-C", str(repo), "remote", "get-url", "origin"],
         capture_output=True,
         text=True,
+        encoding="utf-8",
+        errors="replace",
     )
     if proc.returncode != 0:
         return ""
