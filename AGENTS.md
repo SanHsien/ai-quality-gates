@@ -45,3 +45,7 @@ pwsh -NoProfile -File tools\dev_check.ps1 -Mutation
 ```
 
 高成本關卡取得一次權威綠燈即停止。失敗時只重跑相關 focused test，修完後再跑一次完整 gate。
+
+## 路線圖
+
+- `ROADMAP.md` 是本 repo 後續工作的單一真相源。完成或新增工作時，在同一個 commit 更新它：做完的列刪掉、新工作加進去。不要在其他文件另列待辦。
