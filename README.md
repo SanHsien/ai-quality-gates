@@ -120,7 +120,26 @@ python tools/install_cursor_global.py --trusted-github-owner <你的 GitHub owne
 
 ## 多 Agent 流水線
 
-本 repo 是 [agent-relay](https://github.com/SanHsien/agent-relay) 多 Agent 派工與驗收流水線的一環（角色：可執行規格與覆蓋率關卡）。與 agent-relay 的整合規劃中（Phase 3）。協定規格與所有相關 repo 的總目錄見 agent-relay。
+本 repo 是 [agent-relay](https://github.com/SanHsien/agent-relay) 多 Agent 派工與驗收流水線的一環（Phase 3：驗收閉環，角色為可執行規格、覆蓋率與 mutation 關卡）。
+
+關卡指令定義於 [loop-policy.toml](loop-policy.toml) 的 `[verification]` 區塊：
+
+- **快速關卡（Quick gate，agent-relay 實際執行此項）**：`pwsh -NoProfile -File tools/dev_check.ps1 -Quick`
+  - agent-relay 的 `dispatch.verify` 只有在 `"command"` 設定為 `"loop-policy"` 或 `"auto"` 時，才會讀取 `loop-policy.toml` 的 `quick_gate` 進行驗證。
+- **完整關卡（Full gate，維護者本機驗收或 CI）**：
+  - Windows：`pwsh -NoProfile -File tools/dev_check.ps1`
+  - Linux / WSL：`bash tools/dev_check.sh`
+- **突變測試關卡（Mutation gate）**：
+  - Windows：`pwsh -NoProfile -File tools/dev_check.ps1 -Mutation`
+  - Linux / WSL：`bash tools/mutation_check.sh`
+
+### Exit Code 意義
+
+- **Quick 回傳 `0`（通過 / GREEN）**：代表 compile、ruff、mypy、lint-imports、loop policy、pytest、behave、qa smoke、xenon、module size 都通過。
+- **Full 回傳 `0`（通過 / GREEN）**：除了 Quick 那些項目，coverage（含分支覆蓋率）、文件連結、pip-audit、build、artifacts（機器可讀摘要 `artifacts/coverage.json`、`artifacts/junit.xml` 與 `artifacts/quality-summary.json`）也都通過。
+- **非 `0`（失敗 / RED）**：任一檢查未達標或拋出錯誤，流程中斷並輸出失敗原因，拒絕未經驗收的成果進入下一階段。
+
+協定規格與所有相關 repo 的總目錄見 [agent-relay](https://github.com/SanHsien/agent-relay)。
 
 ## 授權
 

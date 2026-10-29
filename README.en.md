@@ -53,7 +53,26 @@ Adjacent but different layers: [agent-governance-toolkit](https://github.com/San
 
 ## Multi-agent pipeline
 
-This repo is part of the [agent-relay](https://github.com/SanHsien/agent-relay) multi-agent dispatch and verification pipeline (role: executable specs and coverage gates). Integration with agent-relay is planned (Phase 3). The protocol spec and the index of all related repos live in agent-relay.
+This repo is part of the [agent-relay](https://github.com/SanHsien/agent-relay) multi-agent dispatch and verification pipeline (Phase 3: Acceptance Closure, serving as the executable specifications, coverage, and mutation gate).
+
+Gate commands are defined in the `[verification]` section of [loop-policy.toml](loop-policy.toml):
+
+- **Quick gate (invoked by agent-relay)**: `pwsh -NoProfile -File tools/dev_check.ps1 -Quick`
+  - agent-relay's `dispatch.verify` reads and executes `quick_gate` from `loop-policy.toml` only when `"command"` is set to `"loop-policy"` or `"auto"`.
+- **Full gate (local maintainer verification or CI)**:
+  - Windows: `pwsh -NoProfile -File tools/dev_check.ps1`
+  - Linux / WSL: `bash tools/dev_check.sh`
+- **Mutation gate**:
+  - Windows: `pwsh -NoProfile -File tools/dev_check.ps1 -Mutation`
+  - Linux / WSL: `bash tools/mutation_check.sh`
+
+### Exit Code Semantics
+
+- **Quick gate returns `0` (PASS / GREEN)**: Indicates that compile, ruff, mypy, lint-imports, loop policy, pytest, behave, qa smoke, xenon, and module size all passed.
+- **Full gate returns `0` (PASS / GREEN)**: In addition to the Quick checks, coverage (including branch coverage), documentation links, pip-audit, build, and artifacts (`artifacts/coverage.json`, `artifacts/junit.xml`, and `artifacts/quality-summary.json`) all passed.
+- **Non-zero (FAIL / RED)**: Any check fails or throws an error; execution terminates immediately with diagnostic output, preventing unverified deliverables from proceeding.
+
+The protocol spec and the index of all related repos live in [agent-relay](https://github.com/SanHsien/agent-relay).
 
 ## License
 
