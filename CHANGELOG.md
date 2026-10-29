@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Fixed
+
+- Cursor gate 終止行程樹後，收尾讀取最多等待 1 秒；孫行程仍持有 pipe 時回傳 124，保留可取得的部分輸出。
+
 ### Added
 
 - Python 訂單報價示範 domain 與 CLI。

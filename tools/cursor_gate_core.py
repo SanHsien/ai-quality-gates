@@ -20,6 +20,7 @@ except ModuleNotFoundError:  # installed flat beside this module
 
 CONFIG = ".ai-quality-gates.json"
 DEFAULT_TIMEOUT = 180
+CLEANUP_TIMEOUT = 1
 
 
 @dataclass(frozen=True)
@@ -165,7 +166,10 @@ def _default_runner(command: str, repo: Path, timeout: int) -> tuple[int, str, s
         stdout, stderr = proc.communicate(timeout=timeout)
     except subprocess.TimeoutExpired:
         _kill_tree(proc)
-        stdout, stderr = proc.communicate()
+        try:
+            stdout, stderr = proc.communicate(timeout=CLEANUP_TIMEOUT)
+        except subprocess.TimeoutExpired as exc:
+            stdout, stderr = exc.output or b"", exc.stderr or b""
         out = (stdout or b"") + (stderr or b"")
         return 124, out.decode("utf-8", "replace"), "gate timed out"
     return (

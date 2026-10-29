@@ -11,7 +11,6 @@ Python 參考實作的品質閘門：可執行規格、覆蓋率與 mutation 門
 | --- | --- | --- | --- | --- |
 | `loop_runner` 的重複失敗判定改用穩定特徵（例如去掉時間數字的摘要，或失敗測試名集合），並讓驗證指令本身受 `max_elapsed_minutes` 約束 | 目前取輸出最後一行，pytest 的「in 0.52s」每次不同，「連續相同失敗就停」幾乎不觸發；時間上限只在迭代之間檢查，單次驗證可無限超時 | 新測試：兩次只差耗時的 pytest 失敗輸出判為相同；驗證指令超過剩餘時間會被終止並回 `budget_exhausted`；取捨寫進 `docs/decisions.md`；`pwsh -NoProfile -File tools\dev_check.ps1` 綠 | Claude Opus | `tools/loop_runner.py:68-71`、`:78-87` |
 | 決定 Cursor gate 逾時結果（exit 124）是否快取：改為不快取或給短效期 | 逾時被快取成 failed，程式沒變動就不會重跑，偶發慢的機器會一直看到紅燈 | 新測試：逾時後同一 fingerprint 再次 `evaluate` 會重跑 gate；結論寫進 `docs/cursor-global-governance.md`；dev_check 綠 | Claude Opus | `tools/cursor_gate_core.py:165-170`；`tools/cursor_gate_router.py:126-144` |
-| 殺掉行程樹後的第二次 `communicate()` 加上逾時 | 孫行程若仍握著 pipe，收尾讀取會無限等待，抵銷 D2 修正（`0b4007f65f68`） | 新測試：孫行程不退出時 `run()` 在逾時加寬限期內返回 124；dev_check 綠 | Codex | `tools/cursor_gate_core.py:168` |
 | README「與 agent-relay 的整合規劃中（Phase 3）」改成現況：本 repo 提供哪個指令給 relay 的 `dispatch.verify` 呼叫，或明寫尚未提供 | 敘述沒有可查的狀態；協定與呼叫端歸 agent-relay，本 repo 只要寫清楚對外的 gate 指令 | README 該節指名一個可直接執行的 gate 指令（例：`tools\dev_check.ps1` 或 Cursor router 的 CLI）及其 exit code 意義；`python tools/check_docs.py` 綠 | Claude Sonnet | `README.md:123`；agent-relay `README.md:133-141` |
 
 ## 中期：等條件成立再做
