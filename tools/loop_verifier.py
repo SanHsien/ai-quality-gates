@@ -36,11 +36,11 @@ def run_verifier(command: str, timeout: float | None = None) -> tuple[int, str]:
     FAILED lines to stdout while wrappers such as dev_check.ps1 throw to stderr,
     and the repeated-failure check needs the former.
     """
-    group: dict[str, object] = (
-        {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
-        if sys.platform == "win32"
-        else {"start_new_session": True}
-    )
+    group: dict[str, object]
+    if sys.platform == "win32":
+        group = {"creationflags": subprocess.CREATE_NEW_PROCESS_GROUP}
+    else:  # pragma: no cover - exercised on POSIX CI only
+        group = {"start_new_session": True}
     proc = subprocess.Popen(
         command,
         shell=True,
