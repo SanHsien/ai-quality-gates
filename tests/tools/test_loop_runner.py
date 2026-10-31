@@ -280,7 +280,6 @@ def test_default_verifier_timeout_kills_the_whole_process_tree(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     import subprocess
-    import sys
     import time
 
     from tools.loop_runner import _default_verifier
@@ -305,7 +304,6 @@ def test_default_verifier_returns_even_if_tree_kill_fails(
     monkeypatch: pytest.MonkeyPatch,
 ) -> None:
     import subprocess
-    import sys
     import time
 
     from tools.loop_runner import _default_verifier
@@ -347,7 +345,6 @@ def test_kill_tree_survives_taskkill_being_unavailable(monkeypatch: pytest.Monke
 
 
 def test_default_verifier_failure_output_keeps_stdout_and_stderr() -> None:
-    import sys
 
     from tools.loop_runner import _default_verifier
 
