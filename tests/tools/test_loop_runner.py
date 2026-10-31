@@ -326,20 +326,24 @@ def test_default_verifier_returns_even_if_tree_kill_fails(
     assert time.monotonic() - started < grandchild_life - 1
 
 
-@pytest.mark.skipif(sys.platform != "win32", reason="taskkill is the Windows kill path")
-def test_default_verifier_timeout_survives_taskkill_being_unavailable(
-    monkeypatch: pytest.MonkeyPatch,
-) -> None:
-    import subprocess
-
-    from tools.loop_runner import _default_verifier
+def test_kill_tree_survives_taskkill_being_unavailable(monkeypatch: pytest.MonkeyPatch) -> None:
+    from tools import loop_verifier
 
     def no_taskkill(*_args: object, **_kwargs: object) -> None:
         raise FileNotFoundError("taskkill")
 
-    monkeypatch.setattr("tools.loop_verifier.subprocess.run", no_taskkill)
-    with pytest.raises(subprocess.TimeoutExpired):
-        _default_verifier('python -c "import time; time.sleep(30)"', timeout=0.5)
+    killed: list[bool] = []
+
+    class FakeProc:
+        pid = 0
+
+        def kill(self) -> None:
+            killed.append(True)
+
+    monkeypatch.setattr(loop_verifier.sys, "platform", "win32")
+    monkeypatch.setattr(loop_verifier.subprocess, "run", no_taskkill)
+    loop_verifier._kill_tree(FakeProc())  # type: ignore[arg-type]
+    assert killed == [True]
 
 
 def test_default_verifier_failure_output_keeps_stdout_and_stderr() -> None:
