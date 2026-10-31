@@ -4,7 +4,6 @@ from __future__ import annotations
 
 import argparse
 import json
-import subprocess
 import time
 import tomllib
 from collections.abc import Callable, Sequence
@@ -12,6 +11,9 @@ from dataclasses import asdict, dataclass
 from pathlib import Path
 
 from tools.check_loop_policy import HIGH_RISK_APPROVALS
+from tools.loop_signature import failure_signature
+from tools.loop_verifier import run_verifier as _default_verifier
+from tools.loop_verifier import run_within_budget
 
 
 @dataclass
@@ -65,26 +67,48 @@ def check_human_approval_required(text: str) -> str | None:
     return next((r for r in HIGH_RISK_APPROVALS if r in lowered), None)
 
 
-def _is_budget_exceeded(start_time: float, policy: LoopPolicy, state: LoopState) -> bool:
-    if (time.monotonic() - start_time) / 60.0 > policy.max_elapsed_minutes:
-        state.status, state.next_action = "budget_exhausted", "stop_time_limit"
-        return True
-    if state.remaining_tokens <= 0:
-        state.status, state.next_action = "budget_exhausted", "stop_token_budget"
-        return True
-    return False
+def _make_state(
+    task: str,
+    status: str,
+    next_action: str,
+    remaining_tokens: int,
+    last_failure: str | None = None,
+) -> LoopState:
+    return LoopState(
+        task=task,
+        iteration=0 if last_failure else 1,
+        phase="plan" if last_failure else "discover",
+        status=status,
+        changed_paths=[],
+        last_failure=last_failure,
+        evidence_paths=[],
+        remaining_tokens=remaining_tokens,
+        next_action=next_action,
+    )
+
+
+def _stop_budget(state: LoopState, next_action: str, state_path: Path) -> tuple[str, LoopState]:
+    state.status, state.next_action, state.phase = "budget_exhausted", next_action, "verify"
+    state.save(state_path)
+    return "budget_exhausted", state
+
+
+def _budget_stop_reason(start_time: float, policy: LoopPolicy, remaining_tokens: int) -> str | None:
+    elapsed_over = (time.monotonic() - start_time) / 60.0 > policy.max_elapsed_minutes
+    out_of_tokens = remaining_tokens <= 0
+    return "stop_time_limit" if elapsed_over else ("stop_token_budget" if out_of_tokens else None)
 
 
 def _evaluate_failure(
-    code: int, output: str, consec: int, prev: str | None, limit: int, state: LoopState
+    code: int, output: str, consecutive: int, previous: str | None, limit: int, state: LoopState
 ) -> tuple[bool, int, str]:
-    summary = output.strip().splitlines()[-1] if output.strip() else f"exit {code}"
-    state.last_failure = summary
-    new_consec = consec + 1 if prev == summary else 1
+    signature = failure_signature(output, code)
+    state.last_failure = output.strip().splitlines()[-1] if output.strip() else f"exit {code}"
+    new_consec = consecutive + 1 if previous == signature else 1
     if new_consec >= limit:
         state.status, state.next_action = "verification_failed", "stop_repeated_failure"
-        return True, new_consec, summary
-    return False, new_consec, summary
+        return True, new_consec, signature
+    return False, new_consec, signature
 
 
 def _check_preconditions(task: str, policy: LoopPolicy, allow_disabled: bool) -> LoopState | None:
@@ -93,21 +117,17 @@ def _check_preconditions(task: str, policy: LoopPolicy, allow_disabled: bool) ->
             "Loop execution is disabled by policy; set allow_disabled=True or enable in policy"
         )
     risk = check_human_approval_required(task)
-    if risk:
-        state = LoopState(
-            task,
-            0,
-            "plan",
-            "needs_human",
-            [],
-            f"Risk boundary: {risk}",
-            [],
-            policy.max_tokens_per_run,
-            "await_human",
-        )
-        state.save(policy.state_path)
-        return state
-    return None
+    if not risk:
+        return None
+    state = _make_state(
+        task=task,
+        status="needs_human",
+        next_action="await_human",
+        remaining_tokens=policy.max_tokens_per_run,
+        last_failure=f"Risk boundary: {risk}",
+    )
+    state.save(policy.state_path)
+    return state
 
 
 def _run_execution_step(
@@ -117,9 +137,9 @@ def _run_execution_step(
 ) -> None:
     state.phase = "execute"
     if execute_step:
-        for p in execute_step(state.iteration):
-            if p not in state.changed_paths:
-                state.changed_paths.append(p)
+        for path in execute_step(state.iteration):
+            if path not in state.changed_paths:
+                state.changed_paths.append(path)
     state.remaining_tokens = max(0, state.remaining_tokens - token_cost)
 
 
@@ -129,7 +149,7 @@ def run_bounded_loop(
     policy_path: Path = Path("loop-policy.toml"),
     custom_gate: str | None = None,
     execute_step: Callable[[int], list[str]] | None = None,
-    verifier: Callable[[str], tuple[int, str]] | None = None,
+    verifier: Callable[..., tuple[int, str]] | None = None,
     allow_disabled: bool = True,
     token_cost_per_iter: int = 5000,
 ) -> tuple[str, LoopState]:
@@ -140,47 +160,39 @@ def run_bounded_loop(
 
     gate_cmd = custom_gate or policy.quick_gate
     run_verifier = verifier or _default_verifier
-    state = LoopState(
+    state = _make_state(
         task=task,
-        iteration=1,
-        phase="discover",
         status="in_progress",
-        changed_paths=[],
-        last_failure=None,
-        evidence_paths=[],
-        remaining_tokens=policy.max_tokens_per_run,
         next_action="plan",
+        remaining_tokens=policy.max_tokens_per_run,
     )
     state.save(policy.state_path)
 
-    start_time = time.monotonic()
-    consecutive_failures = 0
-    previous_failure: str | None = None
+    start_time, consecutive_failures, previous_signature = time.monotonic(), 0, None
 
     while state.iteration <= policy.max_iterations:
-        if _is_budget_exceeded(start_time, policy, state):
-            state.status = "budget_exhausted"
-            state.phase = "verify"
-            state.save(policy.state_path)
-            return "budget_exhausted", state
+        stop_reason = _budget_stop_reason(start_time, policy, state.remaining_tokens)
+        if stop_reason:
+            return _stop_budget(state, stop_reason, policy.state_path)
 
         _run_execution_step(execute_step, state, token_cost_per_iter)
 
         state.phase = "verify"
-        code, output = run_verifier(gate_cmd)
+        result = run_within_budget(run_verifier, gate_cmd, start_time, policy.max_elapsed_minutes)
+        if result is None:
+            return _stop_budget(state, "stop_time_limit", policy.state_path)
 
+        code, output = result
         if code == 0:
-            state.status = "complete"
-            state.last_failure = None
-            state.next_action = "stop"
+            state.status, state.last_failure, state.next_action = "complete", None, "stop"
             state.save(policy.state_path)
             return "complete", state
 
-        stop, consecutive_failures, previous_failure = _evaluate_failure(
+        stop, consecutive_failures, previous_signature = _evaluate_failure(
             code,
             output,
             consecutive_failures,
-            previous_failure,
+            previous_signature,
             policy.repeated_failure_limit,
             state,
         )
@@ -193,18 +205,7 @@ def run_bounded_loop(
         state.next_action = f"iterate_retry_{state.iteration}"
         state.save(policy.state_path)
 
-    state.status = "budget_exhausted"
-    state.phase = "verify"
-    state.next_action = "stop_iteration_limit"
-    state.save(policy.state_path)
-    return "budget_exhausted", state
-
-
-def _default_verifier(command: str) -> tuple[int, str]:
-    p = subprocess.run(
-        command, shell=True, capture_output=True, text=True, errors="replace", check=False
-    )
-    return p.returncode, p.stdout if p.returncode == 0 else (p.stderr or p.stdout)
+    return _stop_budget(state, "stop_iteration_limit", policy.state_path)
 
 
 def main(argv: Sequence[str] | None = None) -> int:
@@ -218,20 +219,16 @@ def main(argv: Sequence[str] | None = None) -> int:
 
     policy = LoopPolicy.load(args.policy)
     gate = args.command or (policy.full_gate if args.full else policy.quick_gate)
-
     status, state = run_bounded_loop(
-        task=args.task,
+        args.task,
         policy_path=args.policy,
         custom_gate=gate,
         allow_disabled=args.force or policy.enabled,
     )
-    print(
-        f"LOOP {status.upper()}: iter={state.iteration}, status={state.status}, "
-        f"next={state.next_action}"
-    )
-    return {"complete": 0, "needs_human": 2, "budget_exhausted": 3, "verification_failed": 4}.get(
-        status, 1
-    )
+    summary = f"iter={state.iteration}, status={state.status}, next={state.next_action}"
+    print(f"LOOP {status.upper()}: {summary}")
+    mapping = {"complete": 0, "needs_human": 2, "budget_exhausted": 3, "verification_failed": 4}
+    return mapping.get(status, 1)
 
 
 if __name__ == "__main__":
