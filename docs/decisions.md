@@ -1,5 +1,28 @@
 # 設計決策
 
+## 2026-11-02：依賴複審維持下限與鎖檔
+
+開工時工作樹乾淨，HEAD 為 `c3d42ab5c93e944d8898049f97dca4a83f0dace1`。即時 PyPI 查詢確認 mutmut 3.8.1、mypy 2.4.1、ruff 0.17.3 超過既有 `deferredLatest`，兩組中期複審項目的觸發條件成立；import-linter 仍為 2.15、coverage 仍為 7.17.0。strict 檢查另指出 hatchling 1.33.0、pytest 9.2.0，合併實測後記錄延後理由，沒有為了綠燈提高宣告下限。
+
+實測環境為 Windows、Python 3.12.14，venv 與完整輸出位於系統暫存目錄 `$env:TEMP/aqg-dependency-review-20261102`，不加入版本控制。先以 `uv sync --frozen --python 3.12` 建立暫存 venv（`UV_PROJECT_ENVIRONMENT` 指向該處），再用 `uv pip install --python <venv>/Scripts/python.exe --upgrade import-linter mutmut mypy ruff coverage hatchling pytest` 安裝最新版，兩步 exit 0；後續直接呼叫該 venv 的執行檔，避免 `uv run` 自動還原鎖版。
+
+| 暫存環境命令（以下 python 均指該 venv） | Exit code | 結尾證據 |
+| --- | --- | --- |
+| `python -m ruff format --check .` | 0 | 58 files already formatted |
+| `python -m ruff check .` | 0 | All checks passed! |
+| `python -m mypy src tools` | 0 | Success: no issues found in 21 source files |
+| `<venv>/Scripts/lint-imports.exe` | 0 | Contracts: 1 kept, 0 broken. |
+| `python -m pytest -q --cov=quality_gate_demo --cov-branch --cov-report=term-missing --cov-report=json:<temp>/latest-coverage.json --junitxml=<temp>/latest-junit.xml` | 0 | 125 passed；coverage 97.98%，門檻 95% |
+| `<venv>/Scripts/behave.exe --no-capture` | 0 | 3 scenarios passed, 0 failed, 0 skipped；15 steps passed |
+| `python tools/qa_smoke.py` | 0 | QA SMOKE GREEN: example order total=5130 |
+| `python -m hatchling build -d <temp>/dist` | 0 | wheel 與 sdist 產物皆已建立 |
+
+決定：import-linter、mypy 的 Windows 最新版檢查通過，但尚未驗證完整 Python／OS 矩陣，保留現行 lock，待整批鎖檔升級時驗證。mutmut 3.8.1 僅證明可安裝與搭配其他工具跑 lint／測試，不能據此宣稱 mutation 相容；實際呼叫 `wsl.exe --cd <repo> bash -lc "bash tools/mutation_check.sh"`（Windows gate 的同一 Mutation 階段）回傳 -1，本機沒有 WSL 發行版，保留 lock 3.7.0。ruff、coverage 未以下限版本獨立實跑完整 gate，因此維持下限；hatchling、pytest 也先保留宣告及鎖檔，等完整矩陣驗證。七筆 deferral 統一記錄 `reviewed = 2026-11-02`、`revisit = 2026-12-02`，版本精度沿用既有條目（import-linter 兩段，其餘三段）。
+
+鎖定環境驗證：`uv lock --check` exit 0；`pwsh -NoProfile -File tools/dev_check.ps1` exit 0，結尾 `FULL GATE GREEN`，125 tests、0 failures/errors/skipped、coverage 97.98%，`artifacts/quality-summary.json` 的 `profile=full`、`passed=true`、所有 gates=true。Full 在文件與 deferral 更新前取得；更新後只補跑受影響的文件與新鮮度檢查，不重複已通過的高成本套件。Mutation 的 Full 前置階段沿用此證據，不再透過 `-Mutation` 重跑整套；WSL 階段未完成，原有路線圖待驗收列保留。
+
+本次沒有修改程式行為或修 bug，無需新增先紅後綠的回歸測試；依賴新鮮度的實際基線為 `python tools/check_dependency_freshness.py --strict --output <temp>/freshness-before.md` exit 1，更新 deferral 後以相同 strict 檢查 exit 0；`uv run python tools/check_docs.py` exit 0（DOCS GREEN: 20 Markdown files checked），`uv run pytest -q tests/tools/test_check_dependency_freshness.py` exit 0（8 passed），`git diff --check` exit 0。完整輸出分別保存在暫存目錄的 `full.log`、`latest-*.log`、`mutation.log` 與 `freshness-*.log`。後續工作只由 `ROADMAP.md` 追蹤。
+
 ## 2026-11-02：Cursor gate 逾時證據不重用為快取
 
 exit 124 表示驗證未完成，不能作為同一 fingerprint 永久失敗的依據。採取保守且可回復的做法：仍將逾時的 failed 狀態、exit code 與輸出寫入原有 state.json，但 evaluate 遇到 124 紀錄時重跑 gate，不論紀錄是新版或舊版寫入。成功與一般非零失敗維持原本快取行為。

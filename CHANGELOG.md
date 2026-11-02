@@ -22,6 +22,7 @@
 
 ### Changed
 
+- 2026-11-02 實測七個開發依賴的 PyPI 最新版，更新 deferral 版本、理由及複審日期；維持宣告下限與鎖檔，保留 Linux mutation 驗證缺口。
 - Full gate 的 machine summary 新增 schema version、`full` profile 與目前完整 commit SHA，讓外部 claim guard 與 coordinator 能拒絕 Quick 或過期證據。
 - 開發依賴下限：coverage 7.15 → 7.16、import-linter 2.13 → 2.14，lock 一起升。依賴新鮮度檢查的兩筆「待審視」；升版後完整閘門仍全綠。
 

@@ -3,33 +3,45 @@
   "deferrals": {
     "import-linter": {
       "deferredLatest": "2.15",
-      "reviewed": "2026-10-10",
-      "revisit": "2026-11-10",
-      "reason": "dev toolchain pinned in uv.lock; bump verified in full lockfile maintenance pass"
+      "reviewed": "2026-11-02",
+      "revisit": "2026-12-02",
+      "reason": "Latest 2.15 passes Windows Python 3.12 import contracts, lint and 125 tests on 2026-11-02; keep lock 2.14 until a coordinated lock update is verified across the supported Python/OS matrix."
     },
     "mutmut": {
-      "deferredLatest": "3.8.0",
-      "reviewed": "2026-10-10",
-      "revisit": "2026-11-10",
-      "reason": "mutation testing tool executed in Linux CI; bump requires Linux CI verification"
+      "deferredLatest": "3.8.1",
+      "reviewed": "2026-11-02",
+      "revisit": "2026-12-02",
+      "reason": "Latest 3.8.1 installs in the temporary Windows venv and companion lint/tests pass, but mutation execution is unverified: WSL has no Linux distribution (exit -1). Keep lock 3.7.0 until Linux CI mutation verification is available."
     },
     "mypy": {
-      "deferredLatest": "2.4.0",
-      "reviewed": "2026-10-10",
-      "revisit": "2026-11-10",
-      "reason": "type checker pinned in uv.lock; minor update verified in full typechecking pass"
+      "deferredLatest": "2.4.1",
+      "reviewed": "2026-11-02",
+      "revisit": "2026-12-02",
+      "reason": "Latest 2.4.1 passes strict typing for 21 source files, lint and 125 tests on Windows Python 3.12; keep lock 2.3.1 until a coordinated lock update is verified across the supported Python/OS matrix."
     },
     "ruff": {
-      "deferredLatest": "0.17.2",
-      "reviewed": "2026-10-25",
-      "revisit": "2026-11-25",
-      "reason": "lock moved to ruff 0.17.2 and the full gate is green; floor not raised, compatibility with the floor is not separately tested"
+      "deferredLatest": "0.17.3",
+      "reviewed": "2026-11-02",
+      "revisit": "2026-12-02",
+      "reason": "Latest 0.17.3 passes format, lint and 125 tests in the temporary Windows Python 3.12 venv; retain floor 0.16 and lock 0.17.2 because floor compatibility has not been independently verified by a full gate."
     },
     "coverage": {
       "deferredLatest": "7.17.0",
-      "reviewed": "2026-10-25",
-      "revisit": "2026-11-25",
-      "reason": "lock moved to coverage 7.17.0 and the full gate is green; floor not raised, compatibility with the floor is not separately tested"
+      "reviewed": "2026-11-02",
+      "revisit": "2026-12-02",
+      "reason": "Latest 7.17.0 passes 125 tests with 97.98% branch-aware coverage in the temporary Windows Python 3.12 venv; retain floor 7.16 and lock 7.17.0 because floor compatibility has not been independently verified by a full gate."
+    },
+    "hatchling": {
+      "deferredLatest": "1.33.0",
+      "reviewed": "2026-11-02",
+      "revisit": "2026-12-02",
+      "reason": "Latest 1.33.0 builds both wheel and sdist; lint and 125 tests pass in the temporary Windows Python 3.12 venv. Retain floor 1.32 and lock 1.32.0 pending a coordinated build-tool lock update and supported Python/OS matrix verification."
+    },
+    "pytest": {
+      "deferredLatest": "9.2.0",
+      "reviewed": "2026-11-02",
+      "revisit": "2026-12-02",
+      "reason": "Latest 9.2.0 passes all 125 tests, coverage and lint in the temporary Windows Python 3.12 venv; retain floor 9.1 and lock 9.1.1 pending a coordinated lock update verified across the supported Python/OS matrix."
     }
   }
 }
