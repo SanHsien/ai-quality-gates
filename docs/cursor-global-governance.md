@@ -37,7 +37,9 @@ Router 不維護 repo 白名單。Cursor 每次在 Git repository 結束回合�
 
 自動執行 repo-native command 前另套用使用者層級信任政策：指定 owner 的 GitHub repo 可執行正式 gate；外部 owner、無 origin 或未明確信任的 repo 只以可信的 Git executable 執行 working-tree 與 staged `git diff --check`。本機尚未 push 的新 repo 若要執行 native gate，需先在 `trust.json` 的 `trusted_repositories` 加入其絕對路徑。
 
-同一個 `HEAD + working tree + gate command` 只執行一次；結果快取在 `~/.cursor/governance/state.json`。任何變更都會產生新 fingerprint 並重跑。
+同一個 `HEAD + working tree + gate command` 的成功與一般失敗結果會重用快取；結果保存在 `~/.cursor/governance/state.json`。任何變更都會產生新 fingerprint 並重跑。
+
+逾時（exit 124）只保留失敗狀態與輸出供查閱，不作為可重用快取：下次 `evaluate` 即使 fingerprint 相同也會重跑 gate，既有的 124 紀錄亦適用。選擇不重用而非短效期，避免偶發慢機器因相同程式狀態持續卡在紅燈，且不引入時鐘與過期狀態。每次評估最多執行一次，不在同一次評估內自動重試；持續逾時仍回報失敗，成功後恢復一般快取。取捨見 [設計決策](decisions.md)。
 
 ## Gate 探測順序
 

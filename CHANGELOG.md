@@ -6,6 +6,7 @@
 
 ### Fixed
 
+- Cursor gate 的 exit 124 逾時紀錄保留為證據，但相同 fingerprint 下次評估仍重跑；成功與一般失敗繼續重用快取。
 - Cursor gate 終止行程樹後，收尾讀取最多等待 1 秒；孫行程仍持有 pipe 時回傳 124，保留可取得的部分輸出。
 
 ### Added

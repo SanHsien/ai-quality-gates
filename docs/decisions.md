@@ -1,5 +1,11 @@
 # 設計決策
 
+## 2026-11-02：Cursor gate 逾時證據不重用為快取
+
+exit 124 表示驗證未完成，不能作為同一 fingerprint 永久失敗的依據。採取保守且可回復的做法：仍將逾時的 failed 狀態、exit code 與輸出寫入原有 state.json，但 evaluate 遇到 124 紀錄時重跑 gate，不論紀錄是新版或舊版寫入。成功與一般非零失敗維持原本快取行為。
+
+不採短效期，避免引入時間判斷、時鐘偏移與額外設定；不刪除既有證據、不變更 state schema 或信任政策。代價是持續逾時時，每次評估都會再付出一次 gate 的時間成本；每次評估最多執行一次，仍沿用既有 timeout 與 stop_hook_active 防遞迴邊界，不增加背景或同次自動重試。恢復成功後，同一 fingerprint 即恢復快取。重看條件：若持續逾時讓每次 stop hook 的成本不可接受，或 gate 改為可續跑或分批，再評估短效期快取或逾時專用狀態。
+
 ## 2026-08-22：使用 Python 與 uv
 
 Python 的 pytest、Behave、coverage、Radon、Import Linter 與 mutmut 能覆蓋行為、結構與測試有效性等主要關卡。uv 提供 lockfile、跨平台安裝與可重現命令，Windows 使用 `.venv`，Linux/WSL 使用獨立環境，避免交叉污染。

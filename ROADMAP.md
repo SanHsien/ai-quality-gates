@@ -4,12 +4,12 @@
 > 現況段的數字是 2026-10-29 依 `main` `0b4007f65f68` 查的快照，開工前先重查 GitHub。
 
 ## 現況
-Python 參考實作的品質閘門：可執行規格、覆蓋率與 mutation 門檻、架構契約、有界 agent loop policy，以及把「找出 repo 自己的 gate 並執行、保存證據」抽出來的 Cursor 全域 stop hook（`docs/cursor-global-governance.md:1-3`）。2026-10-29 查：open issue／PR 0、Dependabot 與 code scanning open 0，`main` 上 CI、Dependency freshness 最近一次 success（10-26 push）、CodeQL success（10-26 排程），從未發 release（2026-10-29 `gh release list -R SanHsien/ai-quality-gates`）。repo 健康；未定的是 Cursor gate 的逾時快取行為取捨，以及 `.github/dependency-deferrals.json` 裡五個依賴的到期複審。
+Python 參考實作的品質閘門：可執行規格、覆蓋率與 mutation 門檻、架構契約、有界 agent loop policy，以及把「找出 repo 自己的 gate 並執行、保存證據」抽出來的 Cursor 全域 stop hook（`docs/cursor-global-governance.md:1-3`）。2026-10-29 查：open issue／PR 0、Dependabot 與 code scanning open 0，`main` 上 CI、Dependency freshness 最近一次 success（10-26 push）、CodeQL success（10-26 排程），從未發 release（2026-10-29 `gh release list -R SanHsien/ai-quality-gates`）。repo 健康；2026-11-02 已實作 Cursor gate 的逾時結果只留證據、下次評估重跑（見 `docs/decisions.md`）；Full 各階段通過，但本機缺少 WSL Linux 發行版，Mutation 未完成，近期項目保留至驗收完成。後續依 `.github/dependency-deferrals.json` 追蹤五個依賴的到期複審。
 
 ## 近期：可以直接動手
 | 項目 | 為什麼 | 驗收方式 | 建議執行者 | 證據 |
 | --- | --- | --- | --- | --- |
-| 決定 Cursor gate 逾時結果（exit 124）是否快取：改為不快取或給短效期 | 逾時被快取成 failed，程式沒變動就不會重跑，偶發慢的機器會一直看到紅燈 | 新測試：逾時後同一 fingerprint 再次 `evaluate` 會重跑 gate；結論寫進 `docs/cursor-global-governance.md`；dev_check 綠 | Claude Opus | `tools/cursor_gate_core.py:165-170`；`tools/cursor_gate_router.py:126-144` |
+| 在有 WSL 發行版的機器補跑 `tools/dev_check.ps1 -Mutation` | 2026-11-02 完整閘門中 Mutation 階段因本機沒有 WSL 發行版以 -1 中止（環境沒跑完，不是斷言失敗），所以 mutation 門檻在這次變更上沒有驗證 | 在有 WSL 發行版的機器跑 `-Mutation` exit 0，或對失敗的 mutant 給出理由 | Claude Sonnet | 工人 2026-11-02 紀錄：Full 各階段通過，Mutation 以 -1 中止 |
 
 ## 中期：等條件成立再做
 | 項目 | 觸發條件 | 驗收方式 | 建議執行者 | 證據 |

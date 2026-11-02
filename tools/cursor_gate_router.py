@@ -134,7 +134,8 @@ def evaluate(repo: Path, use_cache: bool = True) -> GateResult:
     cached = state.get(key)
     if not isinstance(cached, dict):
         cached = {}
-    if use_cache and cached.get("fingerprint") == mark:
+    # Keep timeout evidence, but retry it even when the repository is unchanged.
+    if use_cache and cached.get("fingerprint") == mark and cached.get("exit_code") != 124:
         exit_code = cached.get("exit_code")
         return GateResult(
             str(cached.get("status")),
