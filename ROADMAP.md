@@ -1,15 +1,15 @@
 # 路線圖
 
 > 本 repo 後續工作的單一真相源。做完一項，就在同一個 commit 刪掉那一列；新工作只加在這裡。
-> 現況段的數字是 2026-10-29 依 `main` `0b4007f65f68` 查的快照，開工前先重查 GitHub。
+> 現況段的數字是 2026-11-08 依 `main` `d6a532f61ec3` 查的快照，開工前先重查 GitHub。
 
 ## 現況
-Python 參考實作的品質閘門：可執行規格、覆蓋率與 mutation 門檻、架構契約、有界 agent loop policy，以及把「找出 repo 自己的 gate 並執行、保存證據」抽出來的 Cursor 全域 stop hook（`docs/cursor-global-governance.md:1-3`）。2026-10-29 查：open issue／PR 0、Dependabot 與 code scanning open 0，`main` 上 CI、Dependency freshness 最近一次 success（10-26 push）、CodeQL success（10-26 排程），從未發 release（2026-10-29 `gh release list -R SanHsien/ai-quality-gates`）。repo 健康；2026-11-02 已實作 Cursor gate 的逾時結果只留證據、下次評估重跑（見 `docs/decisions.md`）；Full 各階段通過，但本機缺少 WSL Linux 發行版，Mutation 未完成，近期項目保留至驗收完成。2026-11-02 已在系統暫存 venv 實測 PyPI 最新版並完成兩組依賴複審，維持宣告下限與鎖檔；另處理 hatchling、pytest 的新鮮度提醒，七筆 deferral 的下次複審日為 2026-12-02（或 PyPI 超過 `deferredLatest` 時），實測與限制見 `docs/decisions.md`。
+Python 參考實作的品質閘門：可執行規格、覆蓋率與 mutation 門檻、架構契約、有界 agent loop policy，以及把「找出 repo 自己的 gate 並執行、保存證據」抽出來的 Cursor 全域 stop hook（`docs/cursor-global-governance.md:1-3`）。2026-11-08 查：open issue／PR 0、Dependabot 與 code scanning open 0，`main` `d6a532f` 上 CI、Dependency freshness、CodeQL 最近一次皆 success（11-02 push），從未發 release（2026-11-08 `gh release list -R SanHsien/ai-quality-gates` 無輸出）。repo 健康；2026-11-02 已實作 Cursor gate 的逾時結果只留證據、下次評估重跑（見 `docs/decisions.md`）；Full 本機各階段通過，本機缺 WSL 發行版所以 Mutation 在本機未跑；改以 Linux CI 驗收：2026-11-08 `gh run view 41476194274` 顯示 `main` `d6a532f`（2026-11-02，含逾時結果修正 `c3d42ab`）的 CI 三個 job 皆 success，其中 `Mutation gate / Python 3.12`（`bash tools/mutation_check.sh`）success，所以 mutation 門檻在這次變更上已驗證，不需要本機 WSL。2026-11-02 已在系統暫存 venv 實測 PyPI 最新版並完成兩組依賴複審，維持宣告下限與鎖檔；另處理 hatchling、pytest 的新鮮度提醒，七筆 deferral 的下次複審日為 2026-12-02（或 PyPI 超過 `deferredLatest` 時），實測與限制見 `docs/decisions.md`。
 
 ## 近期：可以直接動手
 | 項目 | 為什麼 | 驗收方式 | 建議執行者 | 證據 |
 | --- | --- | --- | --- | --- |
-| 在有 WSL 發行版的機器補跑 `tools/dev_check.ps1 -Mutation` | 2026-11-02 完整閘門中 Mutation 階段因本機沒有 WSL 發行版以 -1 中止（環境沒跑完，不是斷言失敗），所以 mutation 門檻在這次變更上沒有驗證 | 在有 WSL 發行版的機器跑 `-Mutation` exit 0，或對失敗的 mutant 給出理由 | Claude Sonnet | 工人 2026-11-02 紀錄：Full 各階段通過，Mutation 以 -1 中止 |
+| （目前沒有；Mutation 驗收已由 Linux CI 完成，見現況） | 下一輪從中期表挑條件已成立者；複審日 2026-12-02 | — | — | `.github/workflows/ci.yml:70-93`；`gh run view 41476194274` |
 
 ## 中期：等條件成立再做
 | 項目 | 觸發條件 | 驗收方式 | 建議執行者 | 證據 |
