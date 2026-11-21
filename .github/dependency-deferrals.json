@@ -2,10 +2,10 @@
   "$comment": "每月依賴檢查用：已經看過、但這次不升的決定。deferredLatest 記下當時審視的版本，PyPI 一超過它就自動恢復提醒。",
   "deferrals": {
     "import-linter": {
-      "deferredLatest": "2.15",
-      "reviewed": "2026-11-02",
+      "deferredLatest": "2.17",
+      "reviewed": "2026-11-21",
       "revisit": "2026-12-02",
-      "reason": "Latest 2.15 passes Windows Python 3.12 import contracts, lint and 125 tests on 2026-11-02; keep lock 2.14 until a coordinated lock update is verified across the supported Python/OS matrix."
+      "reason": "Latest 2.17 passes Windows Python 3.12 import contracts (1 kept, 0 broken), lint and 125 tests on 2026-11-21; keep lock 2.14 until a coordinated lock update is verified across the supported Python/OS matrix."
     },
     "mutmut": {
       "deferredLatest": "3.8.1",
@@ -20,16 +20,16 @@
       "reason": "Latest 2.4.1 passes strict typing for 21 source files, lint and 125 tests on Windows Python 3.12; keep lock 2.3.1 until a coordinated lock update is verified across the supported Python/OS matrix."
     },
     "ruff": {
-      "deferredLatest": "0.17.3",
-      "reviewed": "2026-11-02",
+      "deferredLatest": "0.17.6",
+      "reviewed": "2026-11-21",
       "revisit": "2026-12-02",
-      "reason": "Latest 0.17.3 passes format, lint and 125 tests in the temporary Windows Python 3.12 venv; retain floor 0.16 and lock 0.17.2 because floor compatibility has not been independently verified by a full gate."
+      "reason": "Latest 0.17.6 passes format, lint and 125 tests in a temporary Windows Python 3.12 venv on 2026-11-21 (0.17.4-0.17.6 change no E9 rule; F changes are F601/F602 performance, an F823 false-negative fix and an F841 exemption); retain floor 0.16 and lock 0.17.2 because floor compatibility has not been independently verified by a full gate."
     },
     "coverage": {
-      "deferredLatest": "7.17.0",
-      "reviewed": "2026-11-02",
+      "deferredLatest": "7.17.4",
+      "reviewed": "2026-11-21",
       "revisit": "2026-12-02",
-      "reason": "Latest 7.17.0 passes 125 tests with 97.98% branch-aware coverage in the temporary Windows Python 3.12 venv; retain floor 7.16 and lock 7.17.0 because floor compatibility has not been independently verified by a full gate."
+      "reason": "Latest 7.17.4 passes 125 tests with 97.98% branch-aware coverage in a temporary Windows Python 3.12 venv on 2026-11-21; retain floor 7.16 and lock 7.17.0 because floor compatibility has not been independently verified by a full gate."
     },
     "hatchling": {
       "deferredLatest": "1.33.0",

@@ -14,7 +14,7 @@ Python 參考實作的品質閘門：可執行規格、覆蓋率與 mutation 門
 ## 中期：等條件成立再做
 | 項目 | 觸發條件 | 驗收方式 | 建議執行者 | 證據 |
 | --- | --- | --- | --- | --- |
-| 複審 7 筆依賴延後（import-linter、mutmut、mypy、ruff、coverage、hatchling、pytest） | `.github/dependency-deferrals.json` 的 `revisit` 日（2026-12-02）到期，或 Dependency freshness 因 PyPI 超過 `deferredLatest` 而提醒；`revisit` 不會自動觸發任何檢查，只靠這一列追 | 升級的話以下限版本跑完整 gate、`uv lock --check` 綠（mutmut 另需 Linux CI 的 mutation job 綠）；不升就更新 deferral 的 `deferredLatest`、`reviewed`、`revisit` 與理由 | Codex | `.github/dependency-deferrals.json`；`docs/decisions.md` |
+| 複審 7 筆依賴延後（import-linter、mutmut、mypy、ruff、coverage、hatchling、pytest） | `.github/dependency-deferrals.json` 的 `revisit` 日（2026-12-02）到期，或 Dependency freshness 因 PyPI 超過 `deferredLatest` 而提醒；`revisit` 不會自動觸發任何檢查，只靠這一列追 | 升級的話以下限版本跑完整 gate、`uv lock --check` 綠（mutmut 另需 Linux CI 的 mutation job 綠）；不升就更新 deferral 的 `deferredLatest`、`reviewed`、`revisit` 與理由 | Codex | `.github/dependency-deferrals.json`；`docs/decisions.md`；2026-11-21 PyPI 超過 `deferredLatest` 的 ruff 0.17.6、coverage 7.17.4、import-linter 2.17 已在暫存 venv 跑 format／lint／mypy／lint-imports／125 測試＋覆蓋率全綠並更新 deferral，其餘四筆待 2026-12-02 |
 | 啟用排程化的 loop（`loop-policy.toml` `enabled = true`） | 一次手動 maker → checker → state → stop 全路徑實跑成功，且 `loop_runner` 兩項取捨已落地（見 `docs/decisions.md` 2026-10-30） | 手動實跑紀錄（指令與輸出）寫進 `docs/loop-engineering.md`；`tools/check_loop_policy.py` 綠 | 維護者 | `docs/decisions.md:15-17`；`loop-policy.toml` |
 
 ## 刻意不做
